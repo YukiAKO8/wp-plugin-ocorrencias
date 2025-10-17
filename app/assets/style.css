@@ -1,0 +1,383 @@
+body.toplevel_page_gs-ocorrencias {
+    background: linear-gradient(135deg, #f7fbff 0%, #e9f4ff 100%);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* --- Container Principal --- */
+.toplevel_page_gs-ocorrencias .wrap {
+    max-width: 1140px;
+    margin: 60px auto;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 28px;
+    box-shadow: 0 12px 40px rgba(0, 140, 255, 0.08),
+        0 4px 10px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(16px);
+    padding: 40px 50px;
+    transition: 0.3s ease;
+}
+
+/* --- Títulos --- */
+.toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline {
+    font-size: 32px;
+    font-weight: 700;
+    color: #0a0a0a;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+}
+
+.sna-gs-page-description {
+    font-size: 16px;
+    color: #5f6368;
+    margin-top: 10px;
+    margin-bottom: 40px;
+    max-width: 85%;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* --- Formulário --- */
+#sna-gs-form-ocorrencia-submit {
+    margin-top: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+#sna-gs-form-ocorrencia-submit div {
+    margin-bottom: 28px;
+}
+
+#sna-gs-form-ocorrencia-submit label {
+    display: block;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1d1d1f;
+    margin-bottom: 10px;
+}
+
+#sna-gs-form-ocorrencia-submit input[type="text"],
+#sna-gs-form-ocorrencia-submit textarea {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid rgba(180, 200, 255, 0.4);
+    border-radius: 16px !important;
+    font-size: 15px;
+    background: rgba(255, 255, 255, 0.65);
+    transition: 0.3s;
+    box-shadow: none;
+}
+
+#sna-gs-form-ocorrencia-submit input[type="text"]:focus,
+#sna-gs-form-ocorrencia-submit textarea:focus {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #00aaff;
+    box-shadow: 0 0 0 4px rgba(0, 170, 255, 0.15);
+    outline: none;
+}
+
+/* --- Botões --- */
+#sna-gs-form-ocorrencia-submit .button-primary,
+.page-title-action {
+    display: inline-block;
+    padding: 10px 30px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+#sna-gs-form-ocorrencia-submit .button-primary:hover,
+.page-title-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 140, 255, 0.35) !important;
+}
+
+/* --- Barra de Busca --- */
+.sna-gs-search-bar {
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.button-clear {
+    background: linear-gradient(90deg, #ff6b6b 0%, #ee5253 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    padding: 10px 30px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+    border-radius: 16px !important;
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+.button-clear:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(238, 82, 83, 0.35) !important;
+}
+
+#sna-gs-search-input {
+    flex-grow: 1;
+    width: auto;
+    padding: 14px 18px;
+    border: 1px solid rgba(180, 200, 255, 0.4);
+    border-radius: 16px !important;
+    font-size: 15px;
+    background: rgba(255, 255, 255, 0.65);
+    transition: 0.3s;
+    box-shadow: none;
+}
+
+#sna-gs-search-input:focus {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #00aaff;
+    box-shadow: 0 0 0 4px rgba(0, 170, 255, 0.15);
+    outline: none;
+}
+
+/* --- Tabela de Ocorrências --- */
+.sna-gs-tabela-ocorrencias {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+    border: none !important;
+}
+
+.sna-gs-tabela-ocorrencias th,
+.sna-gs-tabela-ocorrencias td {
+    border: none;
+}
+
+.sna-gs-tabela-ocorrencias th {
+    background: linear-gradient(90deg, #007bff1a 0%, #007bff0d 100%);
+    color: #0046a8;
+    font-weight: 600;
+    font-size: 15px;
+    text-align: left;
+    padding: 14px 18px;
+    border-bottom: 2px solid rgba(0, 123, 255, 0.1);
+}
+
+.sna-gs-tabela-ocorrencias td {
+    padding: 14px 18px;
+    font-size: 14.5px;
+    color: #333;
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: background 0.2s ease;
+}
+
+.sna-gs-tabela-ocorrencias tr:hover td {
+    background: rgba(225, 240, 255, 0.9);
+    box-shadow: inset 0 0 0 9999px rgba(0, 140, 255, 0.05);
+}
+
+/* --- Botão Flutuante (FAB) --- */
+@keyframes sna-gs-float {
+    0% {
+        transform: translateY(0px);
+        box-shadow: 0 6px 25px rgba(0, 140, 255, 0.25);
+    }
+
+    50% {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(0, 140, 255, 0.35);
+    }
+
+    100% {
+        transform: translateY(0px);
+        box-shadow: 0 6px 25px rgba(0, 140, 255, 0.25);
+    }
+}
+
+.sna-gs-fab {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #00c6ff 0%, #0072ff 100%);
+    border-radius: 50%;
+    text-decoration: none;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    animation: sna-gs-float 4s ease-in-out infinite;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    overflow: hidden;
+}
+
+/* Ícone + */
+.sna-gs-fab-icon {
+    font-size: 32px;
+    line-height: 60px;
+    transition: all 0.3s ease;
+}
+
+/* Texto começa invisível */
+.sna-gs-fab-text {
+    opacity: 0;
+    max-width: 0;
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 16px;
+    margin-left: 8px;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    color: #fff;
+}
+
+/* Efeito flutuar leve */
+@keyframes sna-gs-float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* Hover — expande o botão e mostra o texto */
+.sna-gs-fab:hover {
+    width: 220px;
+    border-radius: 30px;
+    justify-content: flex-start;
+    padding-left: 20px;
+}
+
+.sna-gs-fab:hover .sna-gs-fab-text {
+    opacity: 1;
+    max-width: 160px;
+}
+
+.sna-gs-fab:hover .sna-gs-fab-icon {
+    transform: rotate(90deg);
+    color: #fff;
+}
+
+/* --- Link de Detalhes na Tabela --- */
+.sna-gs-view-details-link {
+    color: #005a9c;
+    /* Azul escuro */
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.sna-gs-view-details-link:hover {
+    color: #0072ff;
+    text-decoration: underline;
+}
+
+/* --- View de Detalhes da Ocorrência --- */
+.sna-gs-details-content {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 16px;
+}
+
+.sna-gs-details-titulo {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1d1d1f;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.sna-gs-details-meta {
+    font-size: 14px;
+    color: #5f6368;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(180, 200, 255, 0.4);
+}
+
+.sna-gs-details-descricao {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #3c4043;
+}
+
+/* --- Paginação --- */
+.sna-gs-pagination {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.sna-gs-pagination-arrow,
+.sna-gs-pagination-current,
+.sna-gs-pagination button {
+    display: inline-block;
+    vertical-align: middle;
+    padding: 0;
+    margin: 0 5px;
+    border-radius: 16px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    width: 48px;
+    height: 48px;
+    line-height: 48px;
+}
+
+.sna-gs-pagination button {
+    cursor: pointer;
+    color: #005a9c;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(180, 200, 255, 0.5);
+}
+
+.sna-gs-pagination button:not(:disabled):hover {
+    background-color: #fff;
+    border-color: #0072ff;
+    color: #0072ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.1);
+}
+
+.sna-gs-pagination button.sna-gs-pagination-current,
+.sna-gs-pagination button.sna-gs-pagination-current:disabled {
+    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+    color: #fff;
+    border: 1px solid transparent;
+    opacity: 1;
+    cursor: default;
+}
+
+.sna-gs-pagination button:disabled {
+    color: #aaa;
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+    opacity: 0.6;
+}

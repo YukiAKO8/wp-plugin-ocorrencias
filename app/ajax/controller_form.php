@@ -1,0 +1,79 @@
+<?php
+/**
+ * Controlador AJAX para troca de views.
+ *
+ * @package GS_Plugin
+ * @since   1.0.0
+ */
+
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
+class GS_Ajax_Controller {
+
+	public static function load_view() {
+		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
+
+		global $wpdb;
+
+		$view = isset( $_POST['view'] ) ? sanitize_key( $_POST['view'] ) : 'list';
+
+		if ( 'form' === $view ) {
+
+			require_once GS_PLUGIN_PATH . 'app/assets/views/formulario-gestao.php';
+
+		} elseif ( 'details' === $view && isset( $_POST['id'] ) ) {
+
+			$id          = absint( $_POST['id'] );
+			$table_name  = $wpdb->prefix . 'gs_ocorrencias';
+
+			$ocorrencia  = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT o.*, u.display_name 
+					 FROM {$table_name} o
+					 LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID 
+					 WHERE o.id = %d",
+					$id
+				)
+			);
+
+			if ( $ocorrencia ) {
+				require_once GS_PLUGIN_PATH . 'app/assets/views/mostrar-ocorrencia.php';
+			}
+
+		} else {
+			$table_name     = $wpdb->prefix . 'gs_ocorrencias';
+			$items_per_page = 8;
+			$current_page   = isset( $_POST['paged'] ) ? absint( $_POST['paged'] ) : 1;
+			$offset         = ( $current_page - 1 ) * $items_per_page;
+
+			// Lógica de busca
+			$search_term  = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
+			$where_clause = '';
+			$prepare_args = array();
+
+			if ( ! empty( $search_term ) ) {
+				$like_term      = '%' . $wpdb->esc_like( $search_term ) . '%';
+				$where_clause   = ' WHERE (o.titulo LIKE %s OR o.descricao LIKE %s)';
+				$prepare_args[] = $like_term;
+				$prepare_args[] = $like_term;
+			}
+            $total_items_query = "SELECT COUNT(o.id) FROM {$table_name} o" . $where_clause;
+			$total_items       = (int) $wpdb->get_var( $wpdb->prepare( $total_items_query, $prepare_args ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$total_pages = ceil( $total_items / $items_per_page );
+
+			// Adiciona os parâmetros de paginação aos argumentos da query
+			$prepare_args[] = $items_per_page;
+			$prepare_args[] = $offset;
+
+			$query = "SELECT o.*, u.display_name FROM {$table_name} o LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID" . $where_clause . ' ORDER BY o.data_registro DESC LIMIT %d OFFSET %d';
+
+			$ocorrencias = $wpdb->get_results( $wpdb->prepare( $query, $prepare_args ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+			require GS_PLUGIN_PATH . 'app/assets/views/lista-ocorrencias.php';
+		}
+
+		wp_die();
+	}
+}
