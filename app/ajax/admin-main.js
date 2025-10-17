@@ -3,16 +3,16 @@ jQuery(document).ready(function ($) {
 
     // Função para carregar a view via AJAX
     function loadView(viewName, data = {}) {
-        container.html('<p>Carregando...</p>'); // Mostra um feedback de carregamento
+        container.html('<p>Carregando...</p>'); 
 
         const ajaxData = Object.assign({
-            action: 'gs_load_view', // Ação registrada no PHP
-            nonce: gs_ajax_object.nonce, // Nonce de segurança
-            view: viewName // 'list', 'form', ou 'details'
+            action: 'gs_load_view', 
+            nonce: gs_ajax_object.nonce, 
+            view: viewName 
         }, data);
 
         $.ajax({
-            url: ajaxurl, // URL global do WordPress para AJAX
+            url: ajaxurl, 
             type: 'POST',
             data: ajaxData,
             success: function (response) {
@@ -24,35 +24,58 @@ jQuery(document).ready(function ($) {
         });
     }
 
-    // Delegação de eventos para os botões que podem ser carregados dinamicamente
-    // O botão flutuante agora está fora do container, então o listener é no document.
+
     $(document).on('click', '#sna-gs-load-form-btn', function (e) {
         e.preventDefault();
-        // Esconde o botão flutuante ao ir para o formulário
+
         $(this).fadeOut();
         loadView('form');
     });
 
     container.on('click', '#sna-gs-load-list-btn', function (e) {
         e.preventDefault();
-        // Mostra o botão flutuante ao voltar para a lista
+  
         $('#sna-gs-load-form-btn').fadeIn();
         loadView('list');
     });
 
-    // Listener para o link de detalhes da ocorrência
     container.on('click', '.sna-gs-view-details-link', function (e) {
         e.preventDefault();
         const ocorrenciaId = $(this).data('id');
-        $('#sna-gs-load-form-btn').fadeOut(); // Esconde o FAB na tela de detalhes
+        $('#sna-gs-load-form-btn').fadeOut(); 
         loadView('details', { id: ocorrenciaId });
+    });
+
+   
+    container.on('click', '#sna-gs-increment-btn', function (e) {
+        e.preventDefault();
+        const button = $(this);
+        const ocorrenciaId = button.data('id');
+
+        button.prop('disabled', true).text('Aguarde...');
+
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'gs_increment_counter',
+                nonce: gs_ajax_object.nonce,
+                id: ocorrenciaId
+            },
+            success: function (response) {
+                if (response.success) {
+                    $('#sna-gs-counter-display').text('Interações: ' + response.data.new_count);
+                }
+                button.prop('disabled', false).text('Registrar repetição');
+            }
+        });
     });
 
     // Função para executar a busca
     function performSearch() {
         const searchTerm = container.find('#sna-gs-search-input').val();
-        const listView = container.find('#sna-gs-list-view'); // O container da lista
-        listView.css('opacity', 0.5); // Efeito de carregamento no container inteiro
+        const listView = container.find('#sna-gs-list-view'); 
+        listView.css('opacity', 0.5); 
 
         $.ajax({
             url: ajaxurl,
@@ -62,45 +85,45 @@ jQuery(document).ready(function ($) {
                 nonce: gs_ajax_object.nonce,
                 view: 'list',
                 search: searchTerm,
-                paged: 1 // Sempre volta para a primeira página ao fazer uma nova busca
+                paged: 1 
             },
             success: function (response) {
-                // Substitui todo o conteúdo da lista, incluindo a barra de busca e paginação.
+              
                 container.html(response);
             }
         });
     }
 
-    // Listener para o botão de busca e tecla Enter
-    container.on('click', '#sna-gs-search-submit', performSearch); // Delegação de evento
-    container.on('keypress', '#sna-gs-search-input', function (e) { // Delegação de evento
-        if (e.which === 13) { // 13 é o código da tecla Enter
+   
+    container.on('click', '#sna-gs-search-submit', performSearch); 
+    container.on('keypress', '#sna-gs-search-input', function (e) { 
+        if (e.which === 13) { 
             e.preventDefault();
             performSearch();
         }
     });
 
-    // Listener para o botão de limpar
-    container.on('click', '#sna-gs-search-clear', function () { // Delegação de evento
-        loadView('list'); // Simplesmente recarrega a lista sem filtros.
+
+    container.on('click', '#sna-gs-search-clear', function () { 
+        loadView('list'); 
     });
 
 
-// Listener para os links de paginação
+
 container.on('click', '.sna-gs-pagination-arrow:not(:disabled)', function (e) {
     e.preventDefault();
-    const pageNum = $(this).data('page'); // Pega o número da página
-    const searchTerm = container.find('#sna-gs-search-input').val(); // Pega o termo de busca atual
-    const listView = container.find('#sna-gs-list-view'); // O container da lista
+    const pageNum = $(this).data('page'); 
+    const searchTerm = container.find('#sna-gs-search-input').val(); 
+    const listView = container.find('#sna-gs-list-view'); 
 
-    listView.css('opacity', 0.5); // Efeito de carregamento
+    listView.css('opacity', 0.5); 
 
     const ajaxData = {
         action: 'gs_load_view',
         nonce: gs_ajax_object.nonce,
         view: 'list',
         paged: pageNum,
-        search: searchTerm // Envia o termo de busca junto com a paginação
+        search: searchTerm 
     };
 
     $.ajax({
@@ -108,13 +131,13 @@ container.on('click', '.sna-gs-pagination-arrow:not(:disabled)', function (e) {
         type: 'POST',
         data: ajaxData,
         success: function (response) {
-            // Substitui todo o conteúdo da lista, mantendo a busca e a página atual.
+        
             container.html(response);
         }
     });
 });
 
-// Delegação de evento para o envio do formulário
+
 container.on('submit', '#sna-gs-form-ocorrencia-submit', function (e) {
     e.preventDefault();
 
@@ -134,7 +157,7 @@ container.on('submit', '#sna-gs-form-ocorrencia-submit', function (e) {
         success: function (response) {
             if (response.success) {
                 $('#sna-gs-load-form-btn').fadeIn();
-                loadView('list'); // Se salvou com sucesso, carrega a lista
+                loadView('list'); 
             } else {
                 alert('Erro: ' + response.data.message);
                 submitButton.prop('disabled', false).text('Salvar Ocorrência');

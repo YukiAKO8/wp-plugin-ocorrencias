@@ -22,7 +22,7 @@ body.toplevel_page_gs-ocorrencias {
     font-weight: 700;
     color: #0a0a0a;
     letter-spacing: -0.5px;
-    margin-bottom: 12px;
+     margin: 0; /* Resetar margem, pois o wrapper já cuida disso */
 }
 
 .sna-gs-page-description {
@@ -131,6 +131,26 @@ body.toplevel_page_gs-ocorrencias {
 .button-clear:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 25px rgba(238, 82, 83, 0.35) !important;
+}
+
+.button-increment {
+    background: linear-gradient(90deg, #1dd1a1 0%, #10ac84 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    padding: 10px 22px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    border-radius: 16px !important;
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    box-shadow: none !important;
+}
+
+.button-increment:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(29, 209, 161, 0.35) !important;
 }
 
 #sna-gs-search-input {
@@ -329,6 +349,22 @@ body.toplevel_page_gs-ocorrencias {
     color: #3c4043;
 }
 
+.sna-gs-details-counter {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.sna-gs-details-counter span {
+    font-weight: 600;
+    color: #333;
+    background: #f0f6fc;
+    padding: 5px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
 /* --- Paginação --- */
 .sna-gs-pagination {
     margin-top: 30px;
@@ -380,4 +416,19 @@ body.toplevel_page_gs-ocorrencias {
     background-color: #f0f0f0;
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+/* --- Header Title Wrapper (para logo e título) --- */
+.sna-gs-header-title-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    flex-direction: column;
+}
+
+.sna-gs-header-logo {
+    height: 160px; /* Ajuste o tamanho conforme necessário */
+    margin-bottom: 15px; /* Espaço entre o logo e o título */
+    vertical-align: middle;
 }

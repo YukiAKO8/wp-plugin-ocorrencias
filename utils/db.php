@@ -27,8 +27,9 @@ class GS_Plugin_DB {
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			user_id bigint(20) UNSIGNED NOT NULL,
 			titulo text NOT NULL,
-			descricao longtext NOT NULL,
-			data_registro datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+			descricao longtext NOT NULL, 
+			data_registro datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+			contador int(11) NOT NULL DEFAULT 0,
 			PRIMARY KEY  (id)
 		) $charset_collate;";
 

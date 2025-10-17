@@ -37,6 +37,7 @@ class GS_Plugin_App {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 		add_action( 'wp_ajax_gs_load_view', array( $this, 'ajax_load_view' ) );
 		add_action( 'wp_ajax_gs_save_ocorrencia', array( $this, 'handle_form_submission' ) );
+		add_action( 'wp_ajax_gs_increment_counter', array( $this, 'ajax_increment_counter' ) );
 	}
 
 	public function handle_form_submission() {
@@ -71,6 +72,38 @@ class GS_Plugin_App {
 		}
 	}
 
+	/**
+	 * Callback AJAX para incrementar o contador de uma ocorrência.
+	 *
+	 * @since 1.0.0
+	 */
+	public function ajax_increment_counter() {
+		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
+
+		if ( ! isset( $_POST['id'] ) || ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Ação não permitida ou ID ausente.' ) );
+		}
+
+		global $wpdb;
+		$id         = absint( $_POST['id'] );
+		$table_name = $wpdb->prefix . 'gs_ocorrencias';
+
+		// Incrementa o contador no banco de dados de forma atômica.
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$table_name} SET contador = contador + 1 WHERE id = %d",
+				$id
+			)
+		);
+
+		// Pega o novo valor para retornar ao frontend.
+		$new_count = $wpdb->get_var(
+			$wpdb->prepare( "SELECT contador FROM {$table_name} WHERE id = %d", $id )
+		);
+
+		wp_send_json_success( array( 'new_count' => $new_count ) );
+	}
+
 	public function register_admin_menu() {
 		add_menu_page(
 			'Lista de Ocorrências', // Título da página
@@ -90,8 +123,11 @@ class GS_Plugin_App {
 	 */
 	public function render_admin_manager_page() {
 		echo '<div class="wrap">';
-		echo '<h1 class="wp-heading-inline" style="text-align: center; display: block;">Gerenciar Ocorrências</h1>';
-		echo '<p class="sna-gs-page-description">Esta é uma ferramenta desenvolvida para registrar, organizar e acompanhar situações, problemas ou solicitações internas dentro de uma empresa ou instituição. Seu principal objetivo é centralizar as informações e permitir que cada ocorrência seja monitorada desde o momento em que é registrada até sua resolução.</p>';
+		echo '<div class="sna-gs-header-title-wrapper">';
+		echo '<img src="' . esc_url( GS_PLUGIN_URL . 'app/assets/views/image.png' ) . '" alt="Logo" class="sna-gs-header-logo">';
+		echo '<h1 class="wp-heading-inline">Gerenciar Ocorrências</h1>';
+		echo '</div>';
+		echo '<p class="sna-gs-page-description">Esta é uma ferramenta desenvolvida para registrar, e acompanhar problemas. Seu principal objetivo é centralizar as informações e permitir que cada ocorrência seja monitorada desde o momento em que é registrada até sua resolução.</p>';
 
 
 		// Exibe mensagem de sucesso se houver.
