@@ -177,8 +177,11 @@ class GS_Plugin_App {
 		if ( 'toplevel_page_gs-ocorrencias' !== $hook ) {
 			return;
 		}
-		wp_enqueue_style( 'gs-admin-styles', GS_PLUGIN_URL . 'app/assets/style.css', array(), GS_PLUGIN_VERSION );
-		wp_enqueue_script( 'gs-admin-main', GS_PLUGIN_URL . 'app/ajax/admin-main.js', array( 'jquery' ), GS_PLUGIN_VERSION, true );
+		// Usa a data de modificação do arquivo para versionamento, forçando o navegador a recarregar se houver mudanças.
+		$style_version = filemtime( GS_PLUGIN_PATH . 'app/assets/style.css' );
+		$script_version = filemtime( GS_PLUGIN_PATH . 'app/ajax/admin-main.js' );
+		wp_enqueue_style( 'gs-admin-styles', GS_PLUGIN_URL . 'app/assets/style.css', array(), $style_version );
+		wp_enqueue_script( 'gs-admin-main', GS_PLUGIN_URL . 'app/ajax/admin-main.js', array( 'jquery' ), $script_version, true );
 		// Passa dados do PHP para o JavaScript (como o nonce de segurança).
 		wp_localize_script( 'gs-admin-main', 'gs_ajax_object', array( 'nonce' => wp_create_nonce( 'gs_ajax_nonce' ) ) );
 	}

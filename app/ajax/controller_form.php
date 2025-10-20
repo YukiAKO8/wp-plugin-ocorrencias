@@ -88,7 +88,7 @@ function gs_increment_counter() {
     $table_name = $wpdb->prefix . 'gs_ocorrencias';
     $id = absint($_POST['id']);
 
-    // Verifica se a ocorrência existe
+
     $exists = $wpdb->get_var( $wpdb->prepare(
         "SELECT COUNT(*) FROM {$table_name} WHERE id = %d",
         $id
@@ -98,13 +98,13 @@ function gs_increment_counter() {
         wp_send_json_error(['message' => 'Ocorrência não encontrada.']);
     }
 
-    // Incrementa o contador no banco de dados
+  
     $wpdb->query( $wpdb->prepare(
         "UPDATE {$table_name} SET contador = COALESCE(contador, 0) + 1 WHERE id = %d",
         $id
     ) );
 
-    // Busca o novo valor
+
     $new_count = $wpdb->get_var( $wpdb->prepare(
         "SELECT contador FROM {$table_name} WHERE id = %d",
         $id

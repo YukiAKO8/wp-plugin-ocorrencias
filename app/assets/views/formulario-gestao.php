@@ -13,11 +13,6 @@ if ( ! defined( 'WPINC' ) ) {
 ?>
 
 <div id="sna-gs-form-view">
-	<a href="#" id="sna-gs-load-list-btn" class="page-title-action">
-		Ver Ocorrências
-	</a>
-
-	<hr class="wp-header-end">
 
 	<form method="post" id="sna-gs-form-ocorrencia-submit">
 
@@ -34,7 +29,8 @@ if ( ! defined( 'WPINC' ) ) {
 			<textarea id="sna-gs-descricao-ocorrencia" name="sna-gs-descricao-ocorrencia" rows="8" required></textarea>
 		</div>
 
-		<div>
+		<div class="sna-gs-form-actions">
+			<a href="#" id="sna-gs-load-list-btn" class="button button-secondary">Ver Ocorrências</a>
 			<button type="submit" name="gs_salvar_ocorrencia" class="button button-primary">Salvar Ocorrência</button>
 		</div>
 

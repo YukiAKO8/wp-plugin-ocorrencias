@@ -1,19 +1,69 @@
 body.toplevel_page_gs-ocorrencias {
-    background: linear-gradient(135deg, #f7fbff 0%, #e9f4ff 100%);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+background: #a34141;
+background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225, 1) 75%, rgba(247, 247, 247, 1) 100%);
+}
+
+/* --- Animação de Fade-in --- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* --- Container Principal --- */
 .toplevel_page_gs-ocorrencias .wrap {
     max-width: 1140px;
     margin: 60px auto;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 28px;
-    box-shadow: 0 12px 40px rgba(0, 140, 255, 0.08),
-        0 4px 10px rgba(0, 0, 0, 0.05);
-    backdrop-filter: blur(16px);
+    background: rgba(216, 215, 215, 0.4);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 20px; /* Ajustado para combinar com o estilo de vidro */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.1), inset 0 0 2px 1px rgba(255, 255, 255, 0.1);
     padding: 40px 50px;
     transition: 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Efeitos de brilho nas bordas do container */
+.toplevel_page_gs-ocorrencias .wrap::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.8),
+        transparent
+    );
+}
+
+.toplevel_page_gs-ocorrencias .wrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px; /* Adicionado para definir a largura */
+    height: 100%; /* Adicionado para definir a altura */
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.8),
+        transparent,
+        rgba(255, 255, 255, 0.3)
+    );
 }
 
 /* --- Títulos --- */
@@ -21,13 +71,14 @@ body.toplevel_page_gs-ocorrencias {
     font-size: 32px;
     font-weight: 700;
     color: #0a0a0a;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     letter-spacing: -0.5px;
      margin: 0; /* Resetar margem, pois o wrapper já cuida disso */
 }
 
 .sna-gs-page-description {
     font-size: 16px;
-    color: #5f6368;
+    color: #4e4f50;
     margin-top: 10px;
     margin-bottom: 40px;
     max-width: 85%;
@@ -67,15 +118,23 @@ body.toplevel_page_gs-ocorrencias {
     font-size: 15px;
     background: rgba(255, 255, 255, 0.65);
     transition: 0.3s;
-    box-shadow: none;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 #sna-gs-form-ocorrencia-submit input[type="text"]:focus,
 #sna-gs-form-ocorrencia-submit textarea:focus {
     background: rgba(255, 255, 255, 0.9);
-    border-color: #00aaff;
-    box-shadow: 0 0 0 4px rgba(0, 170, 255, 0.15);
+    border-color: #333;
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
     outline: none;
+}
+
+/* --- Ações do Formulário --- */
+.sna-gs-form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
 }
 
 /* --- Botões --- */
@@ -85,24 +144,68 @@ body.toplevel_page_gs-ocorrencias {
     padding: 10px 30px !important;
     font-size: 16px !important;
     font-weight: 600 !important;
-    color: #fff !important;
-    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%) !important;
-    border: none !important;
+    color: #212529 !important; /* Texto escuro para legibilidade */
+    background: rgba(255, 255, 255, 0.25) !important; /* Fundo de vidro */
+    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Borda preta sutil */
     border-radius: 16px !important;
     cursor: pointer;
     transition: all 0.3s ease !important;
     height: auto !important;
     line-height: 1.5 !important;
-    box-shadow: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
     text-shadow: none !important;
 }
 
 #sna-gs-form-ocorrencia-submit .button-primary:hover,
 .page-title-action:hover {
+    background: rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(0, 140, 255, 0.35) !important;
 }
 
+/* Estilo específico para o botão "Ver Ocorrências" no formulário */
+#sna-gs-form-view > .page-title-action {
+    background: rgba(255, 165, 0, 0.2) !important; /* Fundo de vidro alaranjado */
+    color: #333 !important;
+}
+
+#sna-gs-form-view > .page-title-action:hover {
+    background: rgba(255, 165, 0, 0.35) !important; /* Tom mais forte no hover */
+}
+
+/* Estilo específico para o botão Salvar Ocorrência no formulário */
+#sna-gs-form-ocorrencia-submit .button-primary {
+    background: rgba(29, 209, 161, 0.4) !important; /* Tom de verde */
+}
+
+#sna-gs-form-ocorrencia-submit .button-primary:hover {
+    background: rgba(29, 209, 161, 0.6) !important; /* Tom mais escuro no hover */
+}
+
+
+.button-secondary {
+    background: rgba(255, 165, 0, 0.2) !important; /* Fundo de vidro alaranjado */
+    border: 1px solid rgba(0, 0, 0, 0.15) !important; /* Borda preta sutil */
+    color: #333 !important;
+    padding: 10px 30px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    border-radius: 16px !important;
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+    text-shadow: none !important;
+    text-decoration: none !important;
+    margin-top: 30px;
+    cursor: pointer !important;
+}
+.button-secondary:hover {
+    background: rgba(255, 165, 0, 0.35) !important; /* Tom mais forte no hover */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-2px) !important;
+}
 /* --- Barra de Busca --- */
 .sna-gs-search-bar {
     margin-bottom: 25px;
@@ -112,32 +215,54 @@ body.toplevel_page_gs-ocorrencias {
 }
 
 .button-clear {
-    background: linear-gradient(90deg, #ff6b6b 0%, #ee5253 100%) !important;
-    border: none !important;
-    color: #fff !important;
+    background: rgba(255, 107, 107, 0.2) !important; /* Fundo de vidro avermelhado */
+    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Borda preta sutil */
+    color: #212529 !important; /* Texto preto */
     padding: 10px 30px !important;
     font-size: 16px !important;
     font-weight: 600 !important;
-    color: #fff !important;
     border-radius: 16px !important;
     cursor: pointer;
     transition: all 0.3s ease !important;
     height: auto !important;
     line-height: 1.5 !important;
-    box-shadow: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
     text-shadow: none !important;
 }
 
 .button-clear:hover {
+    background: rgba(255, 107, 107, 0.35) !important;
+    box-shadow: 0 6px 20px rgba(238, 82, 83, 0.2) !important;
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(238, 82, 83, 0.35) !important;
+}
+
+.button-delete {
+    background: rgba(255, 107, 107, 0.4) !important; /* Tom de vermelho mais forte */
+    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Borda preta sutil */
+    color: #212529 !important; /* Texto preto */
+    padding: 10px 30px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    border-radius: 16px !important;
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+    text-shadow: none !important;
+}
+
+.button-delete:hover {
+    background: rgba(255, 107, 107, 0.6) !important; /* Tom mais escuro no hover */
+    box-shadow: 0 6px 20px rgba(238, 82, 83, 0.2) !important;
+    transform: translateY(-2px);
 }
 
 .button-increment {
-    background: linear-gradient(90deg, #1dd1a1 0%, #10ac84 100%) !important;
-    border: none !important;
-    color: #fff !important;
-    padding: 10px 22px !important;
+    background: rgba(29, 209, 161, 0.4) !important; /* Tom de verde mais forte */
+    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Borda preta sutil */
+    color: #212529 !important; /* Texto preto */
+    padding: 6px 22px !important; /* Padding vertical reduzido */
     font-size: 14px !important;
     font-weight: 600 !important;
     border-radius: 16px !important;
@@ -145,12 +270,13 @@ body.toplevel_page_gs-ocorrencias {
     transition: all 0.3s ease !important;
     height: auto !important;
     line-height: 1.5 !important;
-    box-shadow: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
 }
 
 .button-increment:hover {
+    background: rgba(29, 209, 161, 0.6) !important; /* Tom mais escuro no hover */
+    box-shadow: 0 6px 20px rgba(29, 209, 161, 0.2) !important;
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(29, 209, 161, 0.35) !important;
 }
 
 #sna-gs-search-input {
@@ -162,13 +288,13 @@ body.toplevel_page_gs-ocorrencias {
     font-size: 15px;
     background: rgba(255, 255, 255, 0.65);
     transition: 0.3s;
-    box-shadow: none;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 #sna-gs-search-input:focus {
     background: rgba(255, 255, 255, 0.9);
-    border-color: #00aaff;
-    box-shadow: 0 0 0 4px rgba(0, 170, 255, 0.15);
+    border-color: #333;
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
     outline: none;
 }
 
@@ -179,9 +305,12 @@ body.toplevel_page_gs-ocorrencias {
     border-spacing: 0;
     border-radius: 18px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.85);
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-    border: none !important;
+    background: rgba(255, 255, 255, 0.1); /* Fundo de vidro */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .sna-gs-tabela-ocorrencias th,
@@ -190,47 +319,29 @@ body.toplevel_page_gs-ocorrencias {
 }
 
 .sna-gs-tabela-ocorrencias th {
-    background: linear-gradient(90deg, #007bff1a 0%, #007bff0d 100%);
-    color: #0046a8;
+    background: rgba(255, 255, 255, 0.15); /* Fundo do cabeçalho um pouco mais opaco */
+    color: #333;
     font-weight: 600;
     font-size: 15px;
     text-align: left;
     padding: 14px 18px;
-    border-bottom: 2px solid rgba(0, 123, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .sna-gs-tabela-ocorrencias td {
     padding: 14px 18px;
     font-size: 14.5px;
     color: #333;
-    background: rgba(255, 255, 255, 0.9);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Linha separadora mais sutil */
     transition: background 0.2s ease;
 }
 
 .sna-gs-tabela-ocorrencias tr:hover td {
-    background: rgba(225, 240, 255, 0.9);
-    box-shadow: inset 0 0 0 9999px rgba(0, 140, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.1); /* Efeito hover sutil */
 }
 
 /* --- Botão Flutuante (FAB) --- */
-@keyframes sna-gs-float {
-    0% {
-        transform: translateY(0px);
-        box-shadow: 0 6px 25px rgba(0, 140, 255, 0.25);
-    }
-
-    50% {
-        transform: translateY(-6px);
-        box-shadow: 0 12px 30px rgba(0, 140, 255, 0.35);
-    }
-
-    100% {
-        transform: translateY(0px);
-        box-shadow: 0 6px 25px rgba(0, 140, 255, 0.25);
-    }
-}
-
 .sna-gs-fab {
     position: fixed;
     bottom: 25px;
@@ -241,13 +352,16 @@ body.toplevel_page_gs-ocorrencias {
     justify-content: center;
     width: 60px;
     height: 60px;
-    background: linear-gradient(45deg, #00c6ff 0%, #0072ff 100%);
+    background: rgba(220, 53, 69, 0.25); /* Fundo de vidro avermelhado */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(0, 0, 0, 0.2); /* Borda preta sutil */
     border-radius: 50%;
     text-decoration: none;
-    color: #fff;
+    color: #f8f9fa; /* Cor do texto/ícone para branco suave */
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1), 0 0 15px rgba(255, 100, 100, 0.4);
     animation: sna-gs-float 4s ease-in-out infinite;
     transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
     overflow: hidden;
@@ -270,7 +384,7 @@ body.toplevel_page_gs-ocorrencias {
     margin-left: 8px;
     overflow: hidden;
     transition: all 0.4s ease;
-    color: #fff;
+    color: #f8f9fa;
 }
 
 /* Efeito flutuar leve */
@@ -292,11 +406,14 @@ body.toplevel_page_gs-ocorrencias {
     border-radius: 30px;
     justify-content: flex-start;
     padding-left: 20px;
+    background: rgba(220, 53, 69, 0.4); /* Fundo mais opaco no hover */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 0 20px rgba(255, 100, 100, 0.5);
 }
 
 .sna-gs-fab:hover .sna-gs-fab-text {
     opacity: 1;
     max-width: 160px;
+    color: #fff;
 }
 
 .sna-gs-fab:hover .sna-gs-fab-icon {
@@ -306,8 +423,7 @@ body.toplevel_page_gs-ocorrencias {
 
 /* --- Link de Detalhes na Tabela --- */
 .sna-gs-view-details-link {
-    color: #005a9c;
-    /* Azul escuro */
+    color: #333; /* Alterado de azul para cinza escuro */
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
@@ -315,7 +431,7 @@ body.toplevel_page_gs-ocorrencias {
 }
 
 .sna-gs-view-details-link:hover {
-    color: #0072ff;
+    color: #000; /* Preto no hover */
     text-decoration: underline;
 }
 
@@ -325,6 +441,7 @@ body.toplevel_page_gs-ocorrencias {
     padding: 20px;
     background: rgba(255, 255, 255, 0.7);
     border-radius: 16px;
+    margin-bottom: 30px;
 }
 
 .sna-gs-details-titulo {
@@ -341,6 +458,9 @@ body.toplevel_page_gs-ocorrencias {
     margin-bottom: 30px;
     padding-bottom: 15px;
     border-bottom: 1px solid rgba(180, 200, 255, 0.4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .sna-gs-details-descricao {
@@ -349,8 +469,71 @@ body.toplevel_page_gs-ocorrencias {
     color: #3c4043;
 }
 
+.sna-container-solução {
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.1); /* Fundo de vidro sutil */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.sna-container-solução h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sna-container-solução textarea {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px !important;
+    font-size: 15px;
+    background: rgba(255, 255, 255, 0.15);
+    transition: 0.3s;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.sna-container-solução textarea:focus {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #333;
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
+    outline: none;
+}
+
+.sna-gs-notes-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.sna-gs-notes-actions-right {
+    display: flex;
+    gap: 10px;
+}
+
+/* Estilo específico para o botão Salvar Solução */
+.sna-gs-notes-actions .page-title-action {
+    background: rgba(29, 209, 161, 0.4) !important; /* Tom de verde */
+    color: #212529 !important; /* Texto preto */
+}
+
+.sna-gs-notes-actions .page-title-action:hover {
+    background: rgba(29, 209, 161, 0.6) !important; /* Tom mais escuro no hover */
+}
+
+
 .sna-gs-details-counter {
-    margin-top: 20px;
+    margin-top: 0;
     display: flex;
     align-items: center;
     gap: 15px;
@@ -385,35 +568,37 @@ body.toplevel_page_gs-ocorrencias {
     width: 48px;
     height: 48px;
     line-height: 48px;
+    position: relative; /* Para o efeito de borda */
 }
 
 .sna-gs-pagination button {
     cursor: pointer;
-    color: #005a9c;
-    background-color: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(180, 200, 255, 0.5);
+    color: #212529; /* Texto escuro */
+    background: rgba(255, 255, 255, 0.25); /* Fundo de vidro */
+    border: 1px solid rgba(0, 0, 0, 0.2); /* Borda preta sutil */
 }
 
 .sna-gs-pagination button:not(:disabled):hover {
-    background-color: #fff;
-    border-color: #0072ff;
-    color: #0072ff;
+    background: rgba(255, 255, 255, 0.4);
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
 .sna-gs-pagination button.sna-gs-pagination-current,
 .sna-gs-pagination button.sna-gs-pagination-current:disabled {
-    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-    color: #fff;
-    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.5); /* Fundo mais opaco para destacar */
+    color: #000;
+    border: 1px solid rgba(0, 0, 0, 0.3); /* Borda preta sutil */
     opacity: 1;
     cursor: default;
+    transform: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 .sna-gs-pagination button:disabled {
-    color: #aaa;
-    background-color: #f0f0f0;
+    color: rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(0, 0, 0, 0.1); /* Borda preta sutil */
     cursor: not-allowed;
     opacity: 0.6;
 }

@@ -27,14 +27,24 @@ jQuery(document).ready(function ($) {
 
     $(document).on('click', '#sna-gs-load-form-btn', function (e) {
         e.preventDefault();
-
+        // Altera o título e a descrição para o contexto do formulário
+        $('.toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline').text('Adicionando Nova Ocorrência');
+        $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description').html(
+            'Preencha os campos abaixo para registrar uma nova ocorrência no sistema.<br>' +
+            'Descreva de forma clara o problema, erro ou situação identificada quanto mais detalhes forem informados, mais fácil será acompanhar e resolver.<br>' +
+            'Após salvar, a ocorrência ficará disponível na lista principal para consulta e atualização.'
+        );
         $(this).fadeOut();
         loadView('form');
     });
 
     container.on('click', '#sna-gs-load-list-btn', function (e) {
         e.preventDefault();
-  
+        // Reverte o título e a descrição para o contexto da lista
+        $('.toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline').text('Gerenciar Ocorrências');
+        $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description').html(
+            'Esta é uma ferramenta desenvolvida para registrar, e acompanhar problemas. Seu principal objetivo é centralizar as informações e permitir que cada ocorrência seja monitorada desde o momento em que é registrada até sua resolução.'
+        );
         $('#sna-gs-load-form-btn').fadeIn();
         loadView('list');
     });
