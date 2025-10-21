@@ -213,6 +213,68 @@ class GS_Plugin_App {
 			'dashicons-list-view',  // Ícone do menu
 			25                      // Posição no menu
 		);
+
+		add_submenu_page(
+			'gs-ocorrencias', // Slug do menu pai
+			'Dashboard',
+			'Dashboard',
+			'manage_options',
+			'gs-dashboard', // Slug deste submenu
+			array( $this, 'render_dashboard_page' ) // Função de callback
+		);
+	}
+
+	/**
+	 * Renderiza a página do dashboard.
+	 *
+	 * @since 1.0.0
+	 */
+	public function render_dashboard_page() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'gs_ocorrencias';
+
+		// Métricas para os cards
+		$ocorrencias_mes_total      = $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name} WHERE MONTH(data_registro) = MONTH(CURDATE()) AND YEAR(data_registro) = YEAR(CURDATE())" );
+		$ocorrencias_abertas_total  = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE status = %s", 'aberto' ) );
+		$ocorrencias_solucionadas_total = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE status = %s", 'solucionada' ) );
+
+		// Métricas para o gráfico de pizza do mês atual
+		$solucionadas_mes = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE status = %s AND MONTH(data_registro) = MONTH(CURDATE()) AND YEAR(data_registro) = YEAR(CURDATE())", 'solucionada' ) );
+		$abertas_mes      = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE status = %s AND MONTH(data_registro) = MONTH(CURDATE()) AND YEAR(data_registro) = YEAR(CURDATE())", 'aberto' ) );
+
+		// Métricas para o gráfico de linha (últimos 30 dias)
+		$line_chart_data_raw = $wpdb->get_results(
+			"SELECT DATE(data_registro) as dia, COUNT(id) as total 
+			 FROM {$table_name} 
+			 WHERE data_registro >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
+			 GROUP BY DATE(data_registro) 
+			 ORDER BY DATE(data_registro) ASC",
+			OBJECT_K // Indexa o array pelo campo 'dia'
+		);
+
+		$line_chart_labels = array();
+		$line_chart_data   = array();
+		for ( $i = 29; $i >= 0; $i-- ) {
+			$date_key               = date( 'Y-m-d', strtotime( "-$i days" ) );
+			$line_chart_labels[]    = date( 'd/m', strtotime( $date_key ) );
+			$line_chart_data[]      = isset( $line_chart_data_raw[ $date_key ] ) ? $line_chart_data_raw[ $date_key ]->total : 0;
+		}
+
+		// Passa os dados do gráfico para o JavaScript
+		wp_localize_script(
+			'gs-admin-main',
+			'gs_dashboard_data',
+			array(
+				'pie_solucionadas'    => $solucionadas_mes,
+				'pie_abertas'         => $abertas_mes,
+				'line_labels'         => $line_chart_labels,
+				'line_data'           => $line_chart_data,
+			)
+		);
+
+		echo '<div class="wrap">';
+		require_once GS_PLUGIN_PATH . 'app/assets/views/dashboard.php';
+		echo '</div>';
 	}
 
 	/**
@@ -223,7 +285,7 @@ class GS_Plugin_App {
 	public function render_admin_manager_page() {
 		echo '<div class="wrap">';
 		echo '<div class="sna-gs-header-title-wrapper">'; // Mantém o wrapper para o logo e o título
-		echo '<img src="' . esc_url( GS_PLUGIN_URL . 'app/assets/views/logo.png' ) . '" alt="Logo" class="sna-gs-header-logo">';
+		echo '<img src="' . esc_url( GS_PLUGIN_URL . 'app/assets/views/logoPrincipal.png' ) . '" alt="Logo" class="sna-gs-header-logo">';
 		echo '<h1 class="wp-heading-inline">Gerenciar Ocorrências</h1>';
 		echo '</div>';
 		echo '<p class="sna-gs-page-description">Esta é uma ferramenta desenvolvida para registrar, e acompanhar problemas. Seu principal objetivo é centralizar as informações e permitir que cada ocorrência seja monitorada desde o momento em que é registrada até sua resolução.</p>';
@@ -273,9 +335,11 @@ class GS_Plugin_App {
 	 */
 	public function enqueue_admin_scripts( $hook ) {
 		// Garante que o script só seja carregado na nossa página do plugin.
-		if ( 'toplevel_page_gs-ocorrencias' !== $hook ) {
+		if ( 'toplevel_page_gs-ocorrencias' !== $hook && 'ocorrencias_page_gs-dashboard' !== $hook ) {
 			return;
 		}
+		// Enfileira a biblioteca Chart.js a partir de um CDN
+		wp_enqueue_script( 'chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '4.4.0', true );
 		// Usa a data de modificação do arquivo para versionamento, forçando o navegador a recarregar se houver mudanças.
 		$style_version = filemtime( GS_PLUGIN_PATH . 'app/assets/style.css' );
 		$script_version = filemtime( GS_PLUGIN_PATH . 'app/ajax/admin-main.js' );

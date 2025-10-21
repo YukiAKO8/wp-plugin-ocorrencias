@@ -57,7 +57,7 @@ jQuery(document).ready(function ($) {
             'Ao final da página, é possível adicionar uma solução, editá-la ou excluí-la, conforme necessário.<br>' +
             'Para retornar à lista de ocorrências, basta clicar no botão laranja “Voltar para a Lista”.'
         );
-        $('#sna-gs-load-form-btn').fadeOut(); 
+        $('#sna-gs-load-form-btn').fadeOut();
         loadView('details', { id: ocorrenciaId });
     });
 
@@ -272,4 +272,78 @@ container.on('submit', '#sna-gs-form-ocorrencia-submit', function (e) {
             }
         });
     });
+
+    const chartCanvas = document.getElementById('gs-monthly-pie-chart');
+    if (chartCanvas && typeof gs_dashboard_data !== 'undefined') {
+        const ctx = chartCanvas.getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Solucionadas', 'Em Aberto'],
+                datasets: [{
+                    label: 'Ocorrências no Mês',
+                    data: [gs_dashboard_data.pie_solucionadas, gs_dashboard_data.pie_abertas],
+                    backgroundColor: [
+                        '#e8f5e9', // Verde (cor do texto do card)
+                        '#ffebee'  // Vermelho (cor do texto do card)
+                    ],
+                    borderColor: [
+                        '#a5d6a7',
+                        '#ef9a9a'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                maintainAspectRatio: false, /* Permite que o gráfico preencha o contêiner */
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Analise mensal por grafico'
+                    }
+                }
+            }
+        });
+    }
+
+    const lineChartCanvas = document.getElementById('gs-line-chart');
+    if (lineChartCanvas && typeof gs_dashboard_data !== 'undefined') {
+        const ctx = lineChartCanvas.getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: gs_dashboard_data.line_labels,
+                datasets: [{
+                    label: 'Ocorrências por Dia (Últimos 30 dias)',
+                    data: gs_dashboard_data.line_data,
+                    fill: true, // Preenche a área abaixo da linha
+                    borderColor: '#1976d2', // Cor da linha (azul escuro)
+                    backgroundColor: 'rgba(144, 202, 249, 0.2)', // Cor do preenchimento (azul claro com transparência)
+                    tension: 0.1
+                }]
+            },
+            options: {
+                maintainAspectRatio: false, /* Permite que o gráfico preencha o contêiner */
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Ocorrências por Dia'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
 });
