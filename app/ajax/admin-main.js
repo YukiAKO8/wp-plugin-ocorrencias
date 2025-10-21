@@ -320,14 +320,14 @@ container.on('submit', '#sna-gs-form-ocorrencia-submit', function (e) {
                 datasets: [{
                     label: 'Ocorrências por Dia (Últimos 30 dias)',
                     data: gs_dashboard_data.line_data,
-                    fill: true, // Preenche a área abaixo da linha
-                    borderColor: '#1976d2', // Cor da linha (azul escuro)
-                    backgroundColor: 'rgba(144, 202, 249, 0.2)', // Cor do preenchimento (azul claro com transparência)
+                    fill: true, 
+                    borderColor: '#1976d2', 
+                    backgroundColor: 'rgba(144, 202, 249, 0.2)', 
                     tension: 0.1
                 }]
             },
             options: {
-                maintainAspectRatio: false, /* Permite que o gráfico preencha o contêiner */
+                maintainAspectRatio: false, 
                 responsive: true,
                 plugins: {
                     legend: {

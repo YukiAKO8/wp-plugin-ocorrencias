@@ -43,17 +43,28 @@ class GS_Ajax_Controller {
 
             // Lógica de busca
             $search_term  = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
-            $where_clause = '';
+            $where_clauses = array();
             $prepare_args = array();
 
+            // Filtro por user_role
+            $current_user = wp_get_current_user();
+            $user_role    = ! empty( $current_user->roles ) ? $current_user->roles[0] : null;
+            if ( ! current_user_can( 'manage_options' ) && $user_role ) {
+                $where_clauses[] = 'o.user_role = %s';
+                $prepare_args[]  = $user_role;
+            }
+
+            // Filtro por termo de busca
             if ( ! empty( $search_term ) ) {
                 $like_term      = '%' . $wpdb->esc_like( $search_term ) . '%';
-                $where_clause   = ' WHERE (o.titulo LIKE %s OR o.descricao LIKE %s)';
+                $where_clauses[] = '(o.titulo LIKE %s OR o.descricao LIKE %s)';
                 $prepare_args[] = $like_term;
                 $prepare_args[] = $like_term;
             }
 
-            $total_items_query = "SELECT COUNT(o.id) FROM {$table_name} o" . $where_clause;
+            $where_sql = ! empty( $where_clauses ) ? ' WHERE ' . implode( ' AND ', $where_clauses ) : '';
+
+            $total_items_query = "SELECT COUNT(o.id) FROM {$table_name} o" . $where_sql;
             $total_items       = (int) $wpdb->get_var( $wpdb->prepare( $total_items_query, $prepare_args ) );
             $total_pages = ceil( $total_items / $items_per_page );
 
@@ -61,8 +72,8 @@ class GS_Ajax_Controller {
             $prepare_args[] = $offset;
 
             $query = "SELECT o.*, u.display_name, o.contador FROM {$table_name} o 
-                      LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID" . 
-                      $where_clause . ' ORDER BY o.data_registro DESC LIMIT %d OFFSET %d';
+                      LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID" .
+                      $where_sql . ' ORDER BY o.data_registro DESC LIMIT %d OFFSET %d';
 
             $ocorrencias = $wpdb->get_results( $wpdb->prepare( $query, $prepare_args ) );
 

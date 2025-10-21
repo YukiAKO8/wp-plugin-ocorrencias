@@ -38,7 +38,7 @@ body.ocorrencias_page_gs-dashboard {
     border-radius: 6px;
     border: 1px solid #dcdcde;
     box-shadow: 0 1px 1px rgba(0,0,0,.04);
-    padding: 25px 30px;
+    padding: 25px 30px 100px; /* Adicionado mais espaço na parte inferior */
     transition: 0.3s ease;
     position: relative;
     animation: fadeIn 0.3s ease-out forwards;
@@ -135,27 +135,26 @@ body.ocorrencias_page_gs-dashboard {
 }
 
 #sna-gs-form-ocorrencia-submit .button-primary {
-    background: #e3f2fd !important; /* Fundo azul claro */
-    border-color: #90caf9 !important; /* Borda azul */
-    color: #1976d2 !important; /* Texto azul */
+    background: #e3f2fd !important; 
+    border-color: #90caf9 !important; 
+    color: #1976d2 !important; 
 }
 
 #sna-gs-form-ocorrencia-submit .button-primary:hover {
-    background: #bbdefb !important; /* Azul um pouco mais escuro no hover */
+    background: #bbdefb !important; 
     border-color: #64b5f6 !important;
     color: #1565c0 !important;
-    /* Efeito de iluminação externa */
     box-shadow: 0 0 12px rgba(144, 202, 249, 0.5) !important;
 }
 
 .button-secondary {
-    background: #fff3e0 !important; /* Fundo laranja claro */
-    border: 1px solid #ffb74d !important; /* Borda laranja */
-    color: #ff9800 !important; /* Texto laranja */
+    background: #fff3e0 !important; 
+    border: 1px solid #ffb74d !important; 
+    color: #ff9800 !important; 
     padding: 8px 20px !important;
     font-size: 14px !important;
     font-weight: 500 !important;
-    border-radius: 30px !important; /* Arredondado */
+    border-radius: 30px !important; 
     cursor: pointer;
     transition: all 0.3s ease !important;
     height: auto !important;
@@ -167,10 +166,10 @@ body.ocorrencias_page_gs-dashboard {
     cursor: pointer !important;
 }
 .button-secondary:hover {
-    background: #ffe0b2 !important; /* Laranja um pouco mais escuro no hover */
+    background: #ffe0b2 !important; 
     border-color: #ffa726 !important;
     color: #f57c00 !important;
-    box-shadow: 0 0 12px rgba(255, 183, 77, 0.5) !important; /* Efeito de iluminação */
+    box-shadow: 0 0 12px rgba(255, 183, 77, 0.5) !important;
 }
 
 
@@ -182,48 +181,45 @@ body.ocorrencias_page_gs-dashboard {
 }
 
 .button-clear {
-    background: #ffebee !important; /* Fundo vermelho claro */
-    border: 1px solid #ef9a9a !important; /* Borda vermelha */
-    color: #c62828 !important; /* Texto vermelho escuro */
-    padding: 8px 20px !important; /* Padding consistente */
-    font-size: 14px !important; /* Tamanho da fonte consistente */
-    font-weight: 500 !important; /* Peso da fonte consistente */
-    border-radius: 30px !important; /* Raio da borda consistente */
-    height: auto !important; /* Altura consistente */
-    line-height: 1.5 !important; /* Altura da linha consistente */
+    background: #ffebee !important; 
+    border: 1px solid #ef9a9a !important; 
+     color: #c62828 !important; 
+    padding: 8px 20px !important; 
+    font-size: 14px !important; 
+    font-weight: 500 !important; 
+    border-radius: 30px !important; 
+    height: auto !important; 
+    line-height: 1.5 !important; 
     box-shadow: none !important;
     transition: all 0.3s ease !important;
 }
 
 .button-clear:hover {
-    background: #ffcdd2 !important; /* Vermelho um pouco mais escuro no hover */
+    background: #ffcdd2 !important; 
     border-color: #e57373 !important;
     color: #b71c1c !important;
     transform: none;
-    /* Efeito de iluminação externa */
     box-shadow: 0 0 12px rgba(239, 154, 154, 0.6) !important;
 }
 
 .button-delete {
-    background: #ffebee !important; /* Fundo vermelho claro */
-    border-color: #ef9a9a !important; /* Borda vermelha */
-    color: #c62828 !important; /* Texto vermelho escuro */
+    background: #ffebee !important; 
+    border-color: #ef9a9a !important; 
+    color: #c62828 !important; 
     padding: 8px 20px !important;
     font-size: 14px !important;
     font-weight: 500 !important;
-    border-radius: 30px !important; /* Aumenta o arredondamento */
+    border-radius: 30px !important; 
     text-align: center;
-    /* Adiciona transição para a sombra e o transform */
     transition: all 0.3s ease !important;
 }
 
 .button-delete:hover {
-    background: #ffcdd2 !important; /* Vermelho um pouco mais escuro no hover */
+    background: #ffcdd2 !important; 
     border-color: #e57373 !important;
     color: #b71c1c !important;
     transform: none;
-    /* Efeito de iluminação externa */
-    box-shadow: 0 0 12px rgba(239, 154, 154, 0.6) !important; /* Efeito de iluminação vermelho */
+    box-shadow: 0 0 12px rgba(239, 154, 154, 0.6) !important; 
 }
 
 /* Garante que os botões de busca e limpar tenham o mesmo tamanho */
@@ -703,7 +699,7 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     background-color: #ffffff;
     border: 1px solid #e0e2e4;
     border-radius: 20px;
-    padding: 0px;
+    padding: 10px;
     width: 175px;
     text-align: center;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);

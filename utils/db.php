@@ -26,6 +26,7 @@ class GS_Plugin_DB {
 		$sql = "CREATE TABLE $table_name (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			user_id bigint(20) UNSIGNED NOT NULL,
+			user_role varchar(255) NULL,
 			titulo text NOT NULL,
 			descricao longtext NOT NULL, 
 			data_registro datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,

@@ -52,7 +52,11 @@ class GS_Plugin_App {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'gs_ocorrencias';
 
-		$user_id       = get_current_user_id();
+		$current_user  = wp_get_current_user();
+		$user_id       = $current_user->ID;
+		$user_roles    = $current_user->roles;
+		$user_role     = ! empty( $user_roles ) ? $user_roles[0] : null; // Pega a primeira função do usuário
+
 		$titulo        = sanitize_text_field( wp_unslash( $_POST['titulo'] ) );
 		$descricao     = sanitize_textarea_field( wp_unslash( $_POST['descricao'] ) );
 		$data_registro = current_time( 'mysql' );
@@ -61,6 +65,7 @@ class GS_Plugin_App {
 			$table_name,
 			array(
 				'user_id'       => $user_id,
+				'user_role'     => $user_role,
 				'titulo'        => $titulo,
 				'descricao'     => $descricao,
 				'data_registro' => $data_registro,
@@ -82,13 +87,29 @@ class GS_Plugin_App {
 	public function ajax_increment_counter() {
 		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
 
-		if ( ! isset( $_POST['id'] ) || ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => 'Ação não permitida ou ID ausente.' ) );
-		}
-
 		global $wpdb;
 		$id         = absint( $_POST['id'] );
 		$table_name = $wpdb->prefix . 'gs_ocorrencias';
+
+		if ( ! isset( $_POST['id'] ) ) {
+			wp_send_json_error( array( 'message' => 'ID ausente.' ) );
+		}
+
+		// Lógica de permissão
+		$ocorrencia_role = $wpdb->get_var( $wpdb->prepare( "SELECT user_role FROM {$table_name} WHERE id = %d", $id ) );
+		$current_user    = wp_get_current_user();
+		$user_role       = ! empty( $current_user->roles ) ? $current_user->roles[0] : null;
+
+		$can_increment = false;
+		if ( current_user_can( 'manage_options' ) ) {
+			$can_increment = true; // Administradores podem incrementar qualquer ocorrência.
+		} elseif ( $user_role && $ocorrencia_role === $user_role ) {
+			$can_increment = true; // Usuários podem incrementar se a role for a mesma.
+		}
+
+		if ( ! $can_increment ) {
+			wp_send_json_error( array( 'message' => 'Você não tem permissão para registrar repetições nesta ocorrência.' ) );
+		}
 
 		// Incrementa o contador no banco de dados de forma atômica.
 		$wpdb->query(
@@ -114,13 +135,30 @@ class GS_Plugin_App {
 	public function ajax_save_solution() {
 		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
 
-		if ( ! isset( $_POST['id'], $_POST['solucao'] ) || ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => 'Dados ausentes ou permissão insuficiente.' ) );
-		}
-
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'gs_ocorrencias';
 		$id         = absint( $_POST['id'] );
+
+		if ( ! isset( $_POST['id'], $_POST['solucao'] ) ) {
+			wp_send_json_error( array( 'message' => 'Dados ausentes.' ) );
+		}
+
+		// Lógica de permissão
+		$ocorrencia_role = $wpdb->get_var( $wpdb->prepare( "SELECT user_role FROM {$table_name} WHERE id = %d", $id ) );
+		$current_user    = wp_get_current_user();
+		$user_role       = ! empty( $current_user->roles ) ? $current_user->roles[0] : null;
+
+		$can_edit = false;
+		if ( current_user_can( 'manage_options' ) ) {
+			$can_edit = true; // Administradores podem editar tudo.
+		} elseif ( $user_role && $ocorrencia_role === $user_role ) {
+			$can_edit = true; // Usuários podem editar se a role for a mesma.
+		}
+
+		if ( ! $can_edit ) {
+			wp_send_json_error( array( 'message' => 'Você não tem permissão para modificar a solução desta ocorrência.' ) );
+		}
+
 		$solucao    = sanitize_textarea_field( wp_unslash( $_POST['solucao'] ) ); // Sanitize the solution text
 
 		$current_user_id = get_current_user_id();
@@ -175,13 +213,29 @@ class GS_Plugin_App {
 	public function ajax_delete_solution() {
 		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
 
-		if ( ! isset( $_POST['id'] ) || ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => 'Dados ausentes ou permissão insuficiente.' ) );
-		}
-
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'gs_ocorrencias';
 		$id         = absint( $_POST['id'] );
+
+		if ( ! isset( $_POST['id'] ) ) {
+			wp_send_json_error( array( 'message' => 'Dados ausentes.' ) );
+		}
+
+		// Lógica de permissão
+		$ocorrencia_role = $wpdb->get_var( $wpdb->prepare( "SELECT user_role FROM {$table_name} WHERE id = %d", $id ) );
+		$current_user    = wp_get_current_user();
+		$user_role       = ! empty( $current_user->roles ) ? $current_user->roles[0] : null;
+
+		$can_edit = false;
+		if ( current_user_can( 'manage_options' ) ) {
+			$can_edit = true; // Administradores podem editar tudo.
+		} elseif ( $user_role && $ocorrencia_role === $user_role ) {
+			$can_edit = true; // Usuários podem editar se a role for a mesma.
+		}
+
+		if ( ! $can_edit ) {
+			wp_send_json_error( array( 'message' => 'Você não tem permissão para modificar a solução desta ocorrência.' ) );
+		}
 
 		$result = $wpdb->update(
 			$table_name,
@@ -207,7 +261,7 @@ class GS_Plugin_App {
 		add_menu_page(
 			'Lista de Ocorrências', // Título da página
 			'Ocorrências',          // Título do menu
-			'manage_options',       // Permissão necessária
+			'edit_posts',       // Permissão alterada para ser mais abrangente
 			'gs-ocorrencias',       // Slug do menu
 			array( $this, 'render_admin_manager_page' ), // Função de callback para renderizar a página
 			'dashicons-list-view',  // Ícone do menu
@@ -218,7 +272,7 @@ class GS_Plugin_App {
 			'gs-ocorrencias', // Slug do menu pai
 			'Dashboard',
 			'Dashboard',
-			'manage_options',
+			'edit_posts',       // Permissão alterada para ser mais abrangente
 			'gs-dashboard', // Slug deste submenu
 			array( $this, 'render_dashboard_page' ) // Função de callback
 		);
@@ -233,23 +287,37 @@ class GS_Plugin_App {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'gs_ocorrencias';
 
+		// Lógica de filtragem por user_role
+		$current_user = wp_get_current_user();
+		$user_role    = ! empty( $current_user->roles ) ? $current_user->roles[0] : null;
+		$where_clause = '';
+		$role_arg     = array();
+
+		if ( ! current_user_can( 'manage_options' ) && $user_role ) {
+			$where_clause = ' WHERE user_role = %s';
+			$role_arg[]   = $user_role;
+		}
+
 		// Métricas para os cards
-		$ocorrencias_mes_total      = $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name} WHERE MONTH(data_registro) = MONTH(CURDATE()) AND YEAR(data_registro) = YEAR(CURDATE())" );
-		$ocorrencias_abertas_total  = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE status = %s", 'aberto' ) );
-		$ocorrencias_solucionadas_total = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE status = %s", 'solucionada' ) );
+		$ocorrencias_mes_total      = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name}" . ( empty( $where_clause ) ? ' WHERE' : $where_clause . ' AND' ) . " MONTH(data_registro) = MONTH(CURDATE()) AND YEAR(data_registro) = YEAR(CURDATE())", $role_arg ) );
+		$ocorrencias_abertas_total  = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name}" . ( empty( $where_clause ) ? ' WHERE' : $where_clause . ' AND' ) . ' status = %s', array_merge( $role_arg, array( 'aberto' ) ) ) );
+		$ocorrencias_solucionadas_total = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name}" . ( empty( $where_clause ) ? ' WHERE' : $where_clause . ' AND' ) . ' status = %s', array_merge( $role_arg, array( 'solucionada' ) ) ) );
 
 		// Métricas para o gráfico de pizza do mês atual
-		$solucionadas_mes = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE status = %s AND MONTH(data_registro) = MONTH(CURDATE()) AND YEAR(data_registro) = YEAR(CURDATE())", 'solucionada' ) );
-		$abertas_mes      = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE status = %s AND MONTH(data_registro) = MONTH(CURDATE()) AND YEAR(data_registro) = YEAR(CURDATE())", 'aberto' ) );
+		$solucionadas_mes = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name}" . ( empty( $where_clause ) ? ' WHERE' : $where_clause . ' AND' ) . " status = %s AND MONTH(data_registro) = MONTH(CURDATE()) AND YEAR(data_registro) = YEAR(CURDATE())", array_merge( $role_arg, array( 'solucionada' ) ) ) );
+		$abertas_mes      = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name}" . ( empty( $where_clause ) ? ' WHERE' : $where_clause . ' AND' ) . " status = %s AND MONTH(data_registro) = MONTH(CURDATE()) AND YEAR(data_registro) = YEAR(CURDATE())", array_merge( $role_arg, array( 'aberto' ) ) ) );
 
 		// Métricas para o gráfico de linha (últimos 30 dias)
 		$line_chart_data_raw = $wpdb->get_results(
-			"SELECT DATE(data_registro) as dia, COUNT(id) as total 
-			 FROM {$table_name} 
-			 WHERE data_registro >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
-			 GROUP BY DATE(data_registro) 
-			 ORDER BY DATE(data_registro) ASC",
-			OBJECT_K // Indexa o array pelo campo 'dia'
+			$wpdb->prepare(
+				"SELECT DATE(data_registro) as dia, COUNT(id) as total 
+				 FROM {$table_name} 
+				 " . ( empty( $where_clause ) ? ' WHERE' : $where_clause . ' AND' ) . " data_registro >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
+				 GROUP BY DATE(data_registro) 
+				 ORDER BY DATE(data_registro) ASC",
+				$role_arg
+			),
+			OBJECT_K 
 		);
 
 		$line_chart_labels = array();
@@ -260,7 +328,6 @@ class GS_Plugin_App {
 			$line_chart_data[]      = isset( $line_chart_data_raw[ $date_key ] ) ? $line_chart_data_raw[ $date_key ]->total : 0;
 		}
 
-		// Passa os dados do gráfico para o JavaScript
 		wp_localize_script(
 			'gs-admin-main',
 			'gs_dashboard_data',
@@ -284,48 +351,59 @@ class GS_Plugin_App {
 	 */
 	public function render_admin_manager_page() {
 		echo '<div class="wrap">';
-		echo '<div class="sna-gs-header-title-wrapper">'; // Mantém o wrapper para o logo e o título
+		echo '<div class="sna-gs-header-title-wrapper">'; 
 		echo '<img src="' . esc_url( GS_PLUGIN_URL . 'app/assets/views/logoPrincipal.png' ) . '" alt="Logo" class="sna-gs-header-logo">';
 		echo '<h1 class="wp-heading-inline">Gerenciar Ocorrências</h1>';
 		echo '</div>';
 		echo '<p class="sna-gs-page-description">Esta é uma ferramenta desenvolvida para registrar, e acompanhar problemas. Seu principal objetivo é centralizar as informações e permitir que cada ocorrência seja monitorada desde o momento em que é registrada até sua resolução.</p>';
 
 
-		// Exibe mensagem de sucesso se houver.
+	
 		if ( isset( $_GET['ocorrencia_salva'] ) && '1' === $_GET['ocorrencia_salva'] ) {
 			echo '<div class="notice notice-success is-dismissible"><p>Ocorrência salva com sucesso!</p></div>';
 		}
 
-		// Botão Flutuante - movido para fora do container para ser persistente.
+
 		echo '<a href="#" id="sna-gs-load-form-btn" class="sna-gs-fab">
 				<span class="sna-gs-fab-icon">+</span>
 				<span class="sna-gs-fab-text">Nova Ocorrência</span>
 			  </a>';
 
-		// Container para o conteúdo AJAX
+
 		echo '<div id="sna-gs-view-container">';
-			// Carrega a view inicial (lista)
+
 			global $wpdb;
 			$table_name     = $wpdb->prefix . 'gs_ocorrencias';
 			$items_per_page = 8;
 			$current_page   = 1;
 			$offset         = ( $current_page - 1 ) * $items_per_page;
 
-			// Get total items for pagination
-			$total_items = $wpdb->get_var( "SELECT COUNT(id) FROM $table_name" );
+			// Filtra ocorrências por user_role, exceto para administradores.
+			$current_user = wp_get_current_user();
+			$user_role    = ! empty( $current_user->roles ) ? $current_user->roles[0] : null;
+
+			$where_clause = '';
+			$prepare_args = array();
+
+			if ( ! current_user_can( 'manage_options' ) && $user_role ) {
+				$where_clause   = ' WHERE o.user_role = %s';
+				$prepare_args[] = $user_role;
+			}
+
+			$total_items_query = "SELECT COUNT(o.id) FROM {$table_name} o" . $where_clause;
+			$total_items       = $wpdb->get_var( $wpdb->prepare( $total_items_query, $prepare_args ) );
 			$total_pages = ceil( $total_items / $items_per_page );
 
+			$prepare_args[] = $items_per_page;
+			$prepare_args[] = $offset;
+
 			$ocorrencias = $wpdb->get_results( $wpdb->prepare(
-				"SELECT o.*, u.display_name FROM %i o LEFT JOIN %i u ON o.user_id = u.ID ORDER BY o.data_registro DESC LIMIT %d OFFSET %d",
-				$table_name,
-				$wpdb->users,
-				$items_per_page,
-				$offset
+				"SELECT o.*, u.display_name FROM {$table_name} o LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID" . $where_clause . ' ORDER BY o.data_registro DESC LIMIT %d OFFSET %d',
+				$prepare_args
 			) );
 			require GS_PLUGIN_PATH . 'app/assets/views/lista-ocorrencias.php';
-		echo '</div>'; // Fim do #sna-gs-view-container
-
-		echo '</div>'; // Fim do .wrap
+		echo '</div>'; 
+		echo '</div>'; 
 	}
 
 	/**
