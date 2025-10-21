@@ -1,7 +1,6 @@
 jQuery(document).ready(function ($) {
     const container = $('#sna-gs-view-container');
 
-    // Função para carregar a view via AJAX
     function loadView(viewName, data = {}) {
         container.html('<p>Carregando...</p>'); 
 
@@ -27,7 +26,7 @@ jQuery(document).ready(function ($) {
 
     $(document).on('click', '#sna-gs-load-form-btn', function (e) {
         e.preventDefault();
-        // Altera o título e a descrição para o contexto do formulário
+
         $('.toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline').text('Adicionando Nova Ocorrência');
         $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description').html(
             'Preencha os campos abaixo para registrar uma nova ocorrência no sistema.<br>' +
@@ -40,7 +39,7 @@ jQuery(document).ready(function ($) {
 
     container.on('click', '#sna-gs-load-list-btn', function (e) {
         e.preventDefault();
-        // Reverte o título e a descrição para o contexto da lista
+
         $('.toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline').text('Gerenciar Ocorrências');
         $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description').html(
             'Esta é uma ferramenta desenvolvida para registrar, e acompanhar problemas. Seu principal objetivo é centralizar as informações e permitir que cada ocorrência seja monitorada desde o momento em que é registrada até sua resolução.'
@@ -52,6 +51,12 @@ jQuery(document).ready(function ($) {
     container.on('click', '.sna-gs-view-details-link', function (e) {
         e.preventDefault();
         const ocorrenciaId = $(this).data('id');
+ 
+        $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description').html(
+            'Aqui você pode visualizar os detalhes de uma ocorrência já registrada.<br>' +
+            'Ao final da página, é possível adicionar uma solução, editá-la ou excluí-la, conforme necessário.<br>' +
+            'Para retornar à lista de ocorrências, basta clicar no botão laranja “Voltar para a Lista”.'
+        );
         $('#sna-gs-load-form-btn').fadeOut(); 
         loadView('details', { id: ocorrenciaId });
     });
@@ -81,7 +86,7 @@ jQuery(document).ready(function ($) {
         });
     });
 
-    // Função para executar a busca
+
     function performSearch() {
         const searchTerm = container.find('#sna-gs-search-input').val();
         const listView = container.find('#sna-gs-list-view'); 
@@ -119,7 +124,6 @@ jQuery(document).ready(function ($) {
     });
 
 
-
 container.on('click', '.sna-gs-pagination-arrow:not(:disabled)', function (e) {
     e.preventDefault();
     const pageNum = $(this).data('page'); 
@@ -146,8 +150,6 @@ container.on('click', '.sna-gs-pagination-arrow:not(:disabled)', function (e) {
         }
     });
 });
-
-
 container.on('submit', '#sna-gs-form-ocorrencia-submit', function (e) {
     e.preventDefault();
 
@@ -175,4 +177,99 @@ container.on('submit', '#sna-gs-form-ocorrencia-submit', function (e) {
         }
     });
 });
+
+    function updateSolutionMeta(solucionadoPorName, dataHoraSolucao) {
+        const solutionMetaDiv = container.find('.sna-gs-solution-meta');
+        if (solucionadoPorName && dataHoraSolucao) {
+            solutionMetaDiv.html(`<span>Solucionado por: <strong>${solucionadoPorName}</strong></span><span> | <strong>${dataHoraSolucao.split(' ')[0]}</strong></span><span> | <strong>${dataHoraSolucao.split(' ')[1]}</strong></span>`).show();
+        } else {
+            solutionMetaDiv.empty().hide();
+        }
+    }
+
+   
+    container.on('click', '#sna-gs-save-note-btn', function (e) {
+        e.preventDefault();
+
+        const button = $(this);
+        const ocorrenciaId = button.data('id');
+        const solucaoText = container.find('#sna-gs-notes-textarea').val();
+
+        button.prop('disabled', true).text('Salvando...');
+
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'gs_save_solution',
+                nonce: gs_ajax_object.nonce,
+                id: ocorrenciaId,
+                solucao: solucaoText
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert(response.data.message);
+                  
+                    container.find('#sna-gs-solution-display').html(solucaoText.replace(/\n/g, '<br>')).show();
+                    container.find('#sna-gs-notes-textarea').hide();
+                    button.hide();
+                    container.find('#sna-gs-edit-solution-btn').show();
+                    container.find('#sna-gs-delete-note-btn').show();
+
+                 
+                } else {
+                    alert('Erro: ' + response.data.message); // Exibe um alerta de erro
+                }
+                button.prop('disabled', false).text('Salvar Solução'); // Reset button text
+            }
+        });
+    });
+
+  
+    container.on('click', '#sna-gs-edit-solution-btn', function (e) {
+        e.preventDefault();
+        container.find('#sna-gs-solution-display').hide();
+        container.find('#sna-gs-notes-textarea').show();
+        $(this).hide(); // Hide edit button
+        container.find('#sna-gs-save-note-btn').text('Atualizar Solução').show(); // Show save button with updated text
+    });
+
+  
+    container.on('click', '#sna-gs-delete-note-btn', function (e) {
+        e.preventDefault();
+
+        if (!confirm('Tem certeza de que deseja excluir esta solução? Esta ação não pode ser desfeita.')) {
+            return;
+        }
+
+        const button = $(this);
+        const ocorrenciaId = button.data('id');
+
+        button.prop('disabled', true).text('Excluindo...');
+
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'gs_delete_solution',
+                nonce: gs_ajax_object.nonce,
+                id: ocorrenciaId
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert(response.data.message);
+                   
+                    container.find('#sna-gs-solution-display').empty().hide();
+                    container.find('#sna-gs-notes-textarea').val('').show();
+                    button.hide(); 
+                    container.find('#sna-gs-edit-solution-btn').hide(); // Oculta o botão de editar
+                    container.find('.sna-gs-solution-meta').empty().hide(); // Limpa e oculta a meta da solução
+                    container.find('#sna-gs-save-note-btn').text('Salvar Solução').show(); // Mostra o botão de salvar
+                } else {
+                    alert('Erro: ' + response.data.message);
+                }
+                button.prop('disabled', false).text('Excluir Solução');
+            }
+        });
+    });
 });

@@ -38,6 +38,8 @@ class GS_Plugin_App {
 		add_action( 'wp_ajax_gs_load_view', array( $this, 'ajax_load_view' ) );
 		add_action( 'wp_ajax_gs_save_ocorrencia', array( $this, 'handle_form_submission' ) );
 		add_action( 'wp_ajax_gs_increment_counter', array( $this, 'ajax_increment_counter' ) );
+		add_action( 'wp_ajax_gs_save_solution', array( $this, 'ajax_save_solution' ) );
+		add_action( 'wp_ajax_gs_delete_solution', array( $this, 'ajax_delete_solution' ) );
 	}
 
 	public function handle_form_submission() {
@@ -104,6 +106,103 @@ class GS_Plugin_App {
 		wp_send_json_success( array( 'new_count' => $new_count ) );
 	}
 
+	/**
+	 * Callback AJAX para salvar a solução de uma ocorrência.
+	 *
+	 * @since 1.0.0
+	 */
+	public function ajax_save_solution() {
+		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
+
+		if ( ! isset( $_POST['id'], $_POST['solucao'] ) || ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Dados ausentes ou permissão insuficiente.' ) );
+		}
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'gs_ocorrencias';
+		$id         = absint( $_POST['id'] );
+		$solucao    = sanitize_textarea_field( wp_unslash( $_POST['solucao'] ) ); // Sanitize the solution text
+
+		$current_user_id = get_current_user_id();
+		$current_time    = current_time( 'mysql' );
+
+		$data_to_update = array(
+			'solucao' => $solucao,
+		);
+		$data_formats   = array( '%s' ); // Formato para 'solucao'
+
+		// Determina o novo status baseado no conteúdo da solução
+		if ( ! empty( $solucao ) ) {
+			$data_to_update['status']            = 'solucionada';
+			$data_to_update['solucionado_por']   = $current_user_id;
+			$data_to_update['data_hora_solucao'] = $current_time;
+			$data_formats[]                      = '%s'; // Formato para 'status'
+			$data_formats[]                      = '%d'; // Formato para 'solucionado_por'
+			$data_formats[]                      = '%s'; // Formato para 'data_hora_solucao'
+		} else {
+			// Se a solução for limpa, reverte o status e limpa os dados da solução
+			$data_to_update['status']            = 'aberto';
+			$data_to_update['solucionado_por']   = null;
+			$data_to_update['data_hora_solucao'] = null;
+			$data_formats[]                      = '%s'; // Formato para 'status'
+			$data_formats[]                      = null; // Formato para 'solucionado_por'
+			$data_formats[]                      = null; // Formato para 'data_hora_solucao'
+		}
+
+		$result = $wpdb->update(
+			$table_name,
+			$data_to_update,
+			array( 'id' => $id ),
+			$data_formats,
+			array( '%d' )
+		);
+
+		if ( false === $result ) {
+			wp_send_json_error( array( 'message' => 'Falha ao salvar a solução e/ou status no banco de dados.' ) );
+		} elseif ( 0 === $result ) {
+			// Nenhuma linha afetada, o que significa que os dados já estavam atualizados
+			wp_send_json_success( array( 'message' => 'Nenhuma alteração necessária. Solução e status já estavam atualizados.' ) );
+		} else {
+			wp_send_json_success( array( 'message' => 'Solução e status atualizados com sucesso!' ) );
+		}
+	}
+
+	/**
+	 * Callback AJAX para excluir a solução de uma ocorrência.
+	 *
+	 * @since 1.0.0
+	 */
+	public function ajax_delete_solution() {
+		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
+
+		if ( ! isset( $_POST['id'] ) || ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Dados ausentes ou permissão insuficiente.' ) );
+		}
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'gs_ocorrencias';
+		$id         = absint( $_POST['id'] );
+
+		$result = $wpdb->update(
+			$table_name,
+			array(
+				'solucao' => null,     // Define a solução como nula
+				'status'  => 'aberto', // Reverte o status para 'aberto'
+				'solucionado_por' => null, // Limpa quem solucionou
+				'data_hora_solucao' => null, // Limpa a data/hora da solução
+			),
+			array( 'id' => $id ),
+			array( '%s', '%s', '%d', '%s' ), // Formatos para solucao, status, solucionado_por, data_hora_solucao
+			array( '%d' )
+		);
+
+		if ( false === $result ) {
+			wp_send_json_error( array( 'message' => 'Falha ao excluir a solução.' ) );
+		}
+
+		wp_send_json_success( array( 'message' => 'Solução excluída com sucesso!' ) );
+	}
+
 	public function register_admin_menu() {
 		add_menu_page(
 			'Lista de Ocorrências', // Título da página
@@ -123,8 +222,8 @@ class GS_Plugin_App {
 	 */
 	public function render_admin_manager_page() {
 		echo '<div class="wrap">';
-		echo '<div class="sna-gs-header-title-wrapper">';
-		echo '<img src="' . esc_url( GS_PLUGIN_URL . 'app/assets/views/image.png' ) . '" alt="Logo" class="sna-gs-header-logo">';
+		echo '<div class="sna-gs-header-title-wrapper">'; // Mantém o wrapper para o logo e o título
+		echo '<img src="' . esc_url( GS_PLUGIN_URL . 'app/assets/views/logo.png' ) . '" alt="Logo" class="sna-gs-header-logo">';
 		echo '<h1 class="wp-heading-inline">Gerenciar Ocorrências</h1>';
 		echo '</div>';
 		echo '<p class="sna-gs-page-description">Esta é uma ferramenta desenvolvida para registrar, e acompanhar problemas. Seu principal objetivo é centralizar as informações e permitir que cada ocorrência seja monitorada desde o momento em que é registrada até sua resolução.</p>';

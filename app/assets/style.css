@@ -1,14 +1,12 @@
 body.toplevel_page_gs-ocorrencias {
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-background: #a34141;
-background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225, 1) 75%, rgba(247, 247, 247, 1) 100%);
+    background: #f0f2f5; /* Fundo cinza claro, padrão de dashboards */
 }
 
 /* --- Animação de Fade-in --- */
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(15px);
     }
     to {
         opacity: 1;
@@ -16,75 +14,51 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
     }
 }
 
+/* Efeito flutuar leve */
+@keyframes sna-gs-float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+
 /* --- Container Principal --- */
 .toplevel_page_gs-ocorrencias .wrap {
-    max-width: 1140px;
-    margin: 60px auto;
-    background: rgba(216, 215, 215, 0.4);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border-radius: 20px; /* Ajustado para combinar com o estilo de vidro */
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.1), inset 0 0 2px 1px rgba(255, 255, 255, 0.1);
-    padding: 40px 50px;
+    max-width: 1200px;
+    margin: 20px auto;
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #dcdcde;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    padding: 25px 30px;
     transition: 0.3s ease;
     position: relative;
-    overflow: hidden;
-    animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-/* Efeitos de brilho nas bordas do container */
-.toplevel_page_gs-ocorrencias .wrap::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.8),
-        transparent
-    );
-}
-
-.toplevel_page_gs-ocorrencias .wrap::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 1px; /* Adicionado para definir a largura */
-    height: 100%; /* Adicionado para definir a altura */
-    background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.8),
-        transparent,
-        rgba(255, 255, 255, 0.3)
-    );
+    animation: fadeIn 0.3s ease-out forwards;
 }
 
 /* --- Títulos --- */
 .toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline {
-    font-size: 32px;
-    font-weight: 700;
-    color: #0a0a0a;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    letter-spacing: -0.5px;
-     margin: 0; /* Resetar margem, pois o wrapper já cuida disso */
+    font-size: 40px;
+    font-weight: 600;
+    color: #1d2327;
+    letter-spacing: -0px;
+    margin-top: 0;
+    margin-bottom: revert-layer;
 }
 
 .sna-gs-page-description {
     font-size: 16px;
-    color: #4e4f50;
+    color: #50575e;
     margin-top: 10px;
     margin-bottom: 40px;
-    max-width: 85%;
+    max-width: 100%;
     text-align: center;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 /* --- Formulário --- */
@@ -112,24 +86,24 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
 #sna-gs-form-ocorrencia-submit input[type="text"],
 #sna-gs-form-ocorrencia-submit textarea {
     width: 100%;
-    padding: 14px 18px;
-    border: 1px solid rgba(180, 200, 255, 0.4);
-    border-radius: 16px !important;
+    padding: 10px 12px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px !important;
     font-size: 15px;
-    background: rgba(255, 255, 255, 0.65);
+    background: #ffffff;
     transition: 0.3s;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.07);
 }
 
 #sna-gs-form-ocorrencia-submit input[type="text"]:focus,
 #sna-gs-form-ocorrencia-submit textarea:focus {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: #333;
-    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    border-color: #007cba;
+    box-shadow: 0 0 0 1px #007cba;
     outline: none;
 }
 
-/* --- Ações do Formulário --- */
+
 .sna-gs-form-actions {
     display: flex;
     justify-content: space-between;
@@ -137,180 +111,194 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
     margin-top: 20px;
 }
 
-/* --- Botões --- */
+
 #sna-gs-form-ocorrencia-submit .button-primary,
 .page-title-action {
-    display: inline-block;
-    padding: 10px 30px !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    color: #212529 !important; /* Texto escuro para legibilidade */
-    background: rgba(255, 255, 255, 0.25) !important; /* Fundo de vidro */
-    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Borda preta sutil */
-    border-radius: 16px !important;
+    padding: 8px 20px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #ffffff !important;
+    background: #007cba !important; /* Azul padrão do WordPress */
+    border: 1px solid #007cba !important;
+    border-radius: 30px !important; /* Aumenta o arredondamento */
     cursor: pointer;
     transition: all 0.3s ease !important;
     height: auto !important;
     line-height: 1.5 !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 1px 0 rgba(0,0,0,.05) !important;
     text-shadow: none !important;
+    /* Adiciona transição para a sombra e o transform */
+    transition: all 0.3s ease !important;
 }
 
-#sna-gs-form-ocorrencia-submit .button-primary:hover,
-.page-title-action:hover {
-    background: rgba(255, 255, 255, 0.4) !important;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
-    transform: translateY(-2px);
-}
-
-/* Estilo específico para o botão "Ver Ocorrências" no formulário */
-#sna-gs-form-view > .page-title-action {
-    background: rgba(255, 165, 0, 0.2) !important; /* Fundo de vidro alaranjado */
-    color: #333 !important;
-}
-
-#sna-gs-form-view > .page-title-action:hover {
-    background: rgba(255, 165, 0, 0.35) !important; /* Tom mais forte no hover */
-}
-
-/* Estilo específico para o botão Salvar Ocorrência no formulário */
 #sna-gs-form-ocorrencia-submit .button-primary {
-    background: rgba(29, 209, 161, 0.4) !important; /* Tom de verde */
+    background: #e3f2fd !important; /* Fundo azul claro */
+    border-color: #90caf9 !important; /* Borda azul */
+    color: #1976d2 !important; /* Texto azul */
 }
 
 #sna-gs-form-ocorrencia-submit .button-primary:hover {
-    background: rgba(29, 209, 161, 0.6) !important; /* Tom mais escuro no hover */
+    background: #bbdefb !important; /* Azul um pouco mais escuro no hover */
+    border-color: #64b5f6 !important;
+    color: #1565c0 !important;
+    /* Efeito de iluminação externa */
+    box-shadow: 0 0 12px rgba(144, 202, 249, 0.5) !important;
 }
 
-
 .button-secondary {
-    background: rgba(255, 165, 0, 0.2) !important; /* Fundo de vidro alaranjado */
-    border: 1px solid rgba(0, 0, 0, 0.15) !important; /* Borda preta sutil */
-    color: #333 !important;
-    padding: 10px 30px !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    border-radius: 16px !important;
+    background: #fff3e0 !important; /* Fundo laranja claro */
+    border: 1px solid #ffb74d !important; /* Borda laranja */
+    color: #ff9800 !important; /* Texto laranja */
+    padding: 8px 20px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    border-radius: 30px !important; /* Arredondado */
     cursor: pointer;
     transition: all 0.3s ease !important;
     height: auto !important;
     line-height: 1.5 !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+    box-shadow: none !important;
     text-shadow: none !important;
     text-decoration: none !important;
     margin-top: 30px;
     cursor: pointer !important;
 }
 .button-secondary:hover {
-    background: rgba(255, 165, 0, 0.35) !important; /* Tom mais forte no hover */
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
-    transform: translateY(-2px) !important;
+    background: #ffe0b2 !important; /* Laranja um pouco mais escuro no hover */
+    border-color: #ffa726 !important;
+    color: #f57c00 !important;
+    box-shadow: 0 0 12px rgba(255, 183, 77, 0.5) !important; /* Efeito de iluminação */
 }
-/* --- Barra de Busca --- */
+
+
 .sna-gs-search-bar {
     margin-bottom: 25px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px; 
 }
 
 .button-clear {
-    background: rgba(255, 107, 107, 0.2) !important; /* Fundo de vidro avermelhado */
-    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Borda preta sutil */
-    color: #212529 !important; /* Texto preto */
-    padding: 10px 30px !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    border-radius: 16px !important;
-    cursor: pointer;
+    background: #ffebee !important; /* Fundo vermelho claro */
+    border: 1px solid #ef9a9a !important; /* Borda vermelha */
+    color: #c62828 !important; /* Texto vermelho escuro */
+    padding: 8px 20px !important; /* Padding consistente */
+    font-size: 14px !important; /* Tamanho da fonte consistente */
+    font-weight: 500 !important; /* Peso da fonte consistente */
+    border-radius: 30px !important; /* Raio da borda consistente */
+    height: auto !important; /* Altura consistente */
+    line-height: 1.5 !important; /* Altura da linha consistente */
+    box-shadow: none !important;
     transition: all 0.3s ease !important;
-    height: auto !important;
-    line-height: 1.5 !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
-    text-shadow: none !important;
 }
 
 .button-clear:hover {
-    background: rgba(255, 107, 107, 0.35) !important;
-    box-shadow: 0 6px 20px rgba(238, 82, 83, 0.2) !important;
-    transform: translateY(-2px);
+    background: #ffcdd2 !important; /* Vermelho um pouco mais escuro no hover */
+    border-color: #e57373 !important;
+    color: #b71c1c !important;
+    transform: none;
+    /* Efeito de iluminação externa */
+    box-shadow: 0 0 12px rgba(239, 154, 154, 0.6) !important;
 }
 
 .button-delete {
-    background: rgba(255, 107, 107, 0.4) !important; /* Tom de vermelho mais forte */
-    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Borda preta sutil */
-    color: #212529 !important; /* Texto preto */
-    padding: 10px 30px !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    border-radius: 16px !important;
-    cursor: pointer;
+    background: #ffebee !important; /* Fundo vermelho claro */
+    border-color: #ef9a9a !important; /* Borda vermelha */
+    color: #c62828 !important; /* Texto vermelho escuro */
+    padding: 8px 20px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    border-radius: 30px !important; /* Aumenta o arredondamento */
+    text-align: center;
+    /* Adiciona transição para a sombra e o transform */
     transition: all 0.3s ease !important;
-    height: auto !important;
-    line-height: 1.5 !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
-    text-shadow: none !important;
 }
 
 .button-delete:hover {
-    background: rgba(255, 107, 107, 0.6) !important; /* Tom mais escuro no hover */
-    box-shadow: 0 6px 20px rgba(238, 82, 83, 0.2) !important;
-    transform: translateY(-2px);
+    background: #ffcdd2 !important; /* Vermelho um pouco mais escuro no hover */
+    border-color: #e57373 !important;
+    color: #b71c1c !important;
+    transform: none;
+    /* Efeito de iluminação externa */
+    box-shadow: 0 0 12px rgba(239, 154, 154, 0.6) !important; /* Efeito de iluminação vermelho */
 }
 
+/* Garante que os botões de busca e limpar tenham o mesmo tamanho */
 .button-increment {
-    background: rgba(29, 209, 161, 0.4) !important; /* Tom de verde mais forte */
-    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Borda preta sutil */
-    color: #212529 !important; /* Texto preto */
-    padding: 6px 22px !important; /* Padding vertical reduzido */
+    background: #e3f2fd !important; /* Fundo azul claro */
+    border: 1px solid #90caf9 !important; /* Borda azul */
+    color: #1976d2 !important; /* Texto azul */
+    padding: 8px 20px !important;
     font-size: 14px !important;
-    font-weight: 600 !important;
-    border-radius: 16px !important;
-    cursor: pointer;
+    font-weight: 500 !important;
+    border-radius: 30px !important;
+    /* Adiciona transição para a sombra e o transform */
     transition: all 0.3s ease !important;
-    height: auto !important;
-    line-height: 1.5 !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+    box-shadow: none !important;
 }
 
 .button-increment:hover {
-    background: rgba(29, 209, 161, 0.6) !important; /* Tom mais escuro no hover */
-    box-shadow: 0 6px 20px rgba(29, 209, 161, 0.2) !important;
-    transform: translateY(-2px);
+    background: #bbdefb !important; /* Azul um pouco mais escuro no hover */
+    border-color: #64b5f6 !important;
+    color: #1565c0 !important;
+    box-shadow: 0 0 12px rgba(144, 202, 249, 0.5) !important; /* Efeito de iluminação azul */
+}
+/* Força o mesmo tamanho para os botões de busca e limpar */
+body.toplevel_page_gs-ocorrencias #sna-gs-search-submit,
+body.toplevel_page_gs-ocorrencias #sna-gs-search-clear {
+    width: 110px !important;             /* Força largura */
+    height: 38px !important;            /* Força altura */
+    padding: 0 10px !important;         /* Padding horizontal consistente */
+    line-height: 38px !important;       /* Centraliza texto verticalmente */
+    text-align: center !important;      /* Centraliza texto horizontalmente */
+    box-sizing: border-box !important;  /* Inclui padding e borda na largura/altura */
+    border-radius: 30px !important;     /* Força o arredondamento */
+    position: static !important;        /* Anula posicionamento relativo/absoluto */
+    top: auto !important;               /* Anula deslocamento vertical */
+    font-size: 14px !important;         /* Garante tamanho de fonte consistente */
+    font-weight: 500 !important;        /* Garante peso de fonte consistente */
+}
+
+/* Estilo para o botão de busca (azul) */
+#sna-gs-search-submit {
+    background: #e3f2fd !important; /* Fundo azul claro */
+    border-color: #90caf9 !important; /* Borda azul */
+    color: #1976d2 !important; /* Texto azul */
+}
+
+#sna-gs-search-submit:hover {
+    background: #bbdefb !important; /* Azul um pouco mais escuro no hover */
+    border-color: #64b5f6 !important;
+    box-shadow: 0 0 12px rgba(144, 202, 249, 0.5) !important; /* Efeito de iluminação azul */
 }
 
 #sna-gs-search-input {
     flex-grow: 1;
     width: auto;
-    padding: 14px 18px;
-    border: 1px solid rgba(180, 200, 255, 0.4);
-    border-radius: 16px !important;
+    padding: 8px 12px !important; /* Garante que o padding do input corresponda ao padding vertical dos botões */
+    border: 1px solid #8c8f94;
+    border-radius: 30px !important;
     font-size: 15px;
-    background: rgba(255, 255, 255, 0.65);
+    background: #ffffff;
     transition: 0.3s;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.07);
 }
 
 #sna-gs-search-input:focus {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: #333;
-    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    border-color: #007cba;
+    box-shadow: 0 0 0 1px #007cba;
     outline: none;
 }
 
-/* --- Tabela de Ocorrências --- */
+
 .sna-gs-tabela-ocorrencias {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0;
-    border-radius: 18px;
+    border-spacing: 0 1px;
+    border-radius: 10px; /* Aumentado o raio da borda para arredondar mais a tabela */
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.1); /* Fundo de vidro */
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
-        inset 0 1px 2px rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid #dcdcde;
 }
 
 .sna-gs-tabela-ocorrencias th,
@@ -319,29 +307,30 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
 }
 
 .sna-gs-tabela-ocorrencias th {
-    background: rgba(255, 255, 255, 0.15); /* Fundo do cabeçalho um pouco mais opaco */
-    color: #333;
-    font-weight: 600;
+    background: #f6f7f7;
+    color: #1d2327;
+    font-weight: 500;
     font-size: 15px;
-    text-align: left;
-    padding: 14px 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center; /* Centraliza os títulos da tabela */
+    padding: 12px 15px;
+    border-bottom: 1px solid #dcdcde;
 }
 
 .sna-gs-tabela-ocorrencias td {
-    padding: 14px 18px;
+    padding: 12px 15px;
     font-size: 14.5px;
-    color: #333;
-    background: transparent;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Linha separadora mais sutil */
+    color: #1d2327;
+    background: #ffffff;
+    text-align: center; /* Centraliza o conteúdo das células da tabela */
+    border-bottom: 1px solid #f0f2f5;
     transition: background 0.2s ease;
 }
 
 .sna-gs-tabela-ocorrencias tr:hover td {
-    background-color: rgba(255, 255, 255, 0.1); /* Efeito hover sutil */
+    background-color: #f0f2f5; 
 }
 
-/* --- Botão Flutuante (FAB) --- */
+
 .sna-gs-fab {
     position: fixed;
     bottom: 25px;
@@ -350,31 +339,29 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 60px;
-    height: 60px;
-    background: rgba(220, 53, 69, 0.25); /* Fundo de vidro avermelhado */
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border: 1px solid rgba(0, 0, 0, 0.2); /* Borda preta sutil */
+    width: 50px; /* Tamanho reduzido */
+    height: 50px; /* Tamanho reduzido */
+    background: #ede7f6 !important; /* Fundo roxo claro */
+    border: 1px solid #9575cd !important; /* Borda roxa */
     border-radius: 50%;
     text-decoration: none;
-    color: #f8f9fa; /* Cor do texto/ícone para branco suave */
-    font-weight: 600;
+    color: #5e35b1 !important; /* Ícone roxo escuro */
     cursor: pointer;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1), 0 0 15px rgba(255, 100, 100, 0.4);
-    animation: sna-gs-float 4s ease-in-out infinite;
+    box-shadow: none !important;
     transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
     overflow: hidden;
+    animation: sna-gs-float 4s ease-in-out infinite; /* Reaplicando a animação de flutuação */
 }
 
-/* Ícone + */
+
 .sna-gs-fab-icon {
-    font-size: 32px;
-    line-height: 60px;
+    font-size: 28px; /* Ícone reduzido proporcionalmente */
+    display: flex !important; /* Usa flexbox para centralização */
+    align-items: center !important; /* Alinha verticalmente */
+    justify-content: center !important; /* Alinha horizontalmente */
     transition: all 0.3s ease;
 }
 
-/* Texto começa invisível */
 .sna-gs-fab-text {
     opacity: 0;
     max-width: 0;
@@ -383,47 +370,26 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
     font-size: 16px;
     margin-left: 8px;
     overflow: hidden;
-    transition: all 0.4s ease;
-    color: #f8f9fa;
+    transition: all 0.3s ease;
+    color: #512da8 !important; /* Texto roxo escuro no hover */
 }
 
-/* Efeito flutuar leve */
-@keyframes sna-gs-float {
 
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-6px);
-    }
-}
-
-/* Hover — expande o botão e mostra o texto */
 .sna-gs-fab:hover {
-    width: 220px;
-    border-radius: 30px;
-    justify-content: flex-start;
-    padding-left: 20px;
-    background: rgba(220, 53, 69, 0.4); /* Fundo mais opaco no hover */
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 0 20px rgba(255, 100, 100, 0.5);
+    width: 210px;
+    border-radius: 25px; /* Raio da borda ajustado para a nova altura */
+    background: #d1c4e9 !important; /* Roxo um pouco mais escuro no hover */
+    border-color: #7e57c2 !important;
+    box-shadow: 0 0 12px rgba(149, 117, 205, 0.6) !important; /* Efeito de iluminação roxo */
 }
 
 .sna-gs-fab:hover .sna-gs-fab-text {
     opacity: 1;
     max-width: 160px;
-    color: #fff;
 }
 
-.sna-gs-fab:hover .sna-gs-fab-icon {
-    transform: rotate(90deg);
-    color: #fff;
-}
-
-/* --- Link de Detalhes na Tabela --- */
 .sna-gs-view-details-link {
-    color: #333; /* Alterado de azul para cinza escuro */
+    color: #007cba;
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
@@ -431,21 +397,21 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
 }
 
 .sna-gs-view-details-link:hover {
-    color: #000; /* Preto no hover */
+    color: #005a87;
     text-decoration: underline;
 }
 
-/* --- View de Detalhes da Ocorrência --- */
+
 .sna-gs-details-content {
     margin-top: 20px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 16px;
+    padding: 25px;
+    background: #f6f7f7;
+    border-radius: 4px;
     margin-bottom: 30px;
 }
 
 .sna-gs-details-titulo {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
     color: #1d1d1f;
     margin-top: 0;
@@ -457,7 +423,7 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
     color: #5f6368;
     margin-bottom: 30px;
     padding-bottom: 15px;
-    border-bottom: 1px solid rgba(180, 200, 255, 0.4);
+    border-bottom: 1px solid #dcdcde;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -470,42 +436,36 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
 }
 
 .sna-container-solução {
-    padding: 30px;
-    background: rgba(255, 255, 255, 0.1); /* Fundo de vidro sutil */
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
-        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    padding: 25px;
+    background: #f6f7f7;
+    border-radius: 4px;
     transition: all 0.3s ease;
 }
 
 .sna-container-solução h3 {
     font-size: 20px;
     font-weight: 600;
-    color: #333;
+    color: #1d2327;
     margin-top: 0;
     margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    /* border-bottom: 1px solid #dcdcde; */ /* Removido para igualar ao título da ocorrência */
 }
 
 .sna-container-solução textarea {
     width: 100%;
-    padding: 14px 18px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 16px !important;
+    padding: 10px 12px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px !important;
     font-size: 15px;
-    background: rgba(255, 255, 255, 0.15);
+    background: #ffffff;
     transition: 0.3s;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.07);
 }
 
 .sna-container-solução textarea:focus {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: #333;
-    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
+    border-color: #007cba;
+    box-shadow: 0 0 0 1px #007cba;
     outline: none;
 }
 
@@ -521,16 +481,34 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
     gap: 10px;
 }
 
-/* Estilo específico para o botão Salvar Solução */
+
 .sna-gs-notes-actions .page-title-action {
-    background: rgba(29, 209, 161, 0.4) !important; /* Tom de verde */
-    color: #212529 !important; /* Texto preto */
+    background: #e8f5e9 !important; /* Fundo verde claro */
+    border-color: #a5d6a7 !important; /* Borda verde */
+    color: #2e7d32 !important; /* Texto verde escuro */
 }
 
 .sna-gs-notes-actions .page-title-action:hover {
-    background: rgba(29, 209, 161, 0.6) !important; /* Tom mais escuro no hover */
+    background: #c8e6c9 !important; /* Verde um pouco mais escuro no hover */
+    border-color: #81c784 !important;
+    color: #1b5e20 !important;
+    /* Efeito de iluminação externa */
+    box-shadow: 0 0 12px rgba(165, 214, 167, 0.6) !important;
 }
 
+/* Estilo específico para o botão Editar Solução */
+#sna-gs-edit-solution-btn {
+    background: #fffde7 !important; /* Fundo amarelo claro */
+    border-color: #fff176 !important; /* Borda amarela */
+    color: #fbc02d !important; /* Texto amarelo escuro */
+}
+
+#sna-gs-edit-solution-btn:hover {
+    background: #fff9c4 !important; /* Amarelo um pouco mais escuro no hover */
+    border-color: #ffee58 !important;
+    color: #f9a825 !important;
+    box-shadow: 0 0 12px rgba(255, 241, 118, 0.6) !important; /* Efeito de iluminação amarelo */
+}
 
 .sna-gs-details-counter {
     margin-top: 0;
@@ -541,14 +519,13 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
 
 .sna-gs-details-counter span {
     font-weight: 600;
-    color: #333;
-    background: #f0f6fc;
+    color: #1d2327;
+    background: #e0e2e4;
     padding: 5px 12px;
-    border-radius: 12px;
+    border-radius: 30px;
     font-size: 14px;
 }
 
-/* --- Paginação --- */
 .sna-gs-pagination {
     margin-top: 30px;
     text-align: center;
@@ -559,61 +536,111 @@ background: radial-gradient(circle, rgba(163, 65, 65, 1) 18%, rgba(237, 225, 225
 .sna-gs-pagination button {
     display: inline-block;
     vertical-align: middle;
-    padding: 0;
+    padding: 8px 12px;
     margin: 0 5px;
-    border-radius: 16px;
+    border-radius: 30px; /* Deixa os botões arredondados */
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
-    width: 48px;
-    height: 48px;
-    line-height: 48px;
-    position: relative; /* Para o efeito de borda */
+    min-width: 40px;
+    height: 40px;
+    line-height: 1.5;
 }
 
 .sna-gs-pagination button {
     cursor: pointer;
-    color: #212529; /* Texto escuro */
-    background: rgba(255, 255, 255, 0.25); /* Fundo de vidro */
-    border: 1px solid rgba(0, 0, 0, 0.2); /* Borda preta sutil */
+    color: #007cba;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
 }
 
 .sna-gs-pagination button:not(:disabled):hover {
-    background: rgba(255, 255, 255, 0.4);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    background: #eef2f6 !important;
+    border-color: #007cba !important;
+    color: #007cba !important;
+    transform: none;
+    box-shadow: 0 0 12px rgba(0, 124, 186, 0.4) !important; /* Efeito de iluminação */
 }
 
 .sna-gs-pagination button.sna-gs-pagination-current,
 .sna-gs-pagination button.sna-gs-pagination-current:disabled {
-    background: rgba(255, 255, 255, 0.5); /* Fundo mais opaco para destacar */
-    color: #000;
-    border: 1px solid rgba(0, 0, 0, 0.3); /* Borda preta sutil */
+    background: #e3f2fd !important; /* Fundo azul claro */
+    border-color: #90caf9 !important; /* Borda azul */
+    color: #1976d2 !important; /* Texto azul */
     opacity: 1;
     cursor: default;
-    transform: none;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 .sna-gs-pagination button:disabled {
-    color: rgba(0, 0, 0, 0.3);
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(0, 0, 0, 0.1); /* Borda preta sutil */
+    color: #a7aaad;
+    background: #f6f7f7;
+    border-color: #dcdcde;
     cursor: not-allowed;
     opacity: 0.6;
 }
 
-/* --- Header Title Wrapper (para logo e título) --- */
+
 .sna-gs-header-title-wrapper {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
     flex-direction: column;
+    align-items: center; /* Centraliza os itens horizontalmente */
+    margin-bottom: 12px;
 }
 
 .sna-gs-header-logo {
-    height: 160px; /* Ajuste o tamanho conforme necessário */
-    margin-bottom: 15px; /* Espaço entre o logo e o título */
+height: 400px;
+    margin-right: 0;
+    margin-bottom: -50px;
+    margin-top: -100px;
+     transition: transform 0.3s ease-in-out; /* Adiciona transição suave */
+
+}
+.sna-gs-header-logo:hover {
+    transform: translateY(-10px); /* Move o logo para cima no hover */
+}
+
+/* --- Estilos para o Status --- */
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
     vertical-align: middle;
+    margin-right: 5px; /* Espaço entre o indicador e o texto, se houver */
+}
+
+.status-aberto {
+    background-color: #dc3232; /* Vermelho para status 'aberto' */
+}
+
+.status-solucionada {
+    background-color: #4CAF50; /* Verde para status 'solucionada' */
+}
+
+/* Estilo para a exibição da solução em texto */
+.sna-gs-solution-text {
+    background: #fcfcfc;
+    border: 1px solid #e0e0e0;
+    padding: 10px 12px;
+    border-radius: 4px;
+    min-height: 100px; /* Para manter o espaço visual */
+    line-height: 1.6;
+    color: #333;
+}
+
+/* Estilo para a meta-informação da solução */
+.sna-gs-solution-meta {
+    font-size: 14px;
+    color: #5f6368;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dcdcde;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sna-gs-solution-datetime {
+    display: flex;
+    gap: 5px;
 }

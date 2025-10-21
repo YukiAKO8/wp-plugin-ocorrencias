@@ -20,11 +20,12 @@ class GS_Ajax_Controller {
             $id          = absint( $_POST['id'] );
             $table_name  = $wpdb->prefix . 'gs_ocorrencias';
 
-            $ocorrencia  = $wpdb->get_row(
+            $ocorrencia = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT o.*, u.display_name, o.contador
+                    "SELECT o.*, u.display_name, s.display_name as solucionado_por_name
                      FROM {$table_name} o
-                     LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID 
+                     LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID
+                     LEFT JOIN {$wpdb->users} s ON o.solucionado_por = s.ID
                      WHERE o.id = %d",
                     $id
                 )

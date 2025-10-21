@@ -29,6 +29,10 @@ class GS_Plugin_DB {
 			titulo text NOT NULL,
 			descricao longtext NOT NULL, 
 			data_registro datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+			status varchar(50) DEFAULT 'aberto' NOT NULL,
+			solucao longtext NULL,
+			solucionado_por bigint(20) UNSIGNED NULL,
+			data_hora_solucao datetime NULL,
 			contador int(11) NOT NULL DEFAULT 0,
 			PRIMARY KEY  (id)
 		) $charset_collate;";

@@ -43,11 +43,32 @@ if ( ! defined( 'WPINC' ) ) {
 <div class="sna-container-solução">
 	<h3>Solução</h3>
 	<div class="sna-gs-notes-editor">
-		<textarea id="sna-gs-notes-textarea" placeholder="Adicione uma Solução sobre esta ocorrência..." rows="5"></textarea>
+		<?php if ( ! empty( $ocorrencia->solucao ) ) : ?>
+			<div class="sna-gs-solution-meta">
+				<span>Solucionado por: <strong><?php echo esc_html( $ocorrencia->solucionado_por_name ?? 'Usuário não encontrado' ); ?></strong></span>
+				<div class="sna-gs-solution-datetime">
+					<?php if ( ! empty( $ocorrencia->data_hora_solucao ) ) : ?>
+						<span><strong><?php echo esc_html( date( 'd/m/Y', strtotime( $ocorrencia->data_hora_solucao ) ) ); ?></strong></span>
+						<span>&nbsp;|&nbsp;<strong><?php echo esc_html( date( 'H:i', strtotime( $ocorrencia->data_hora_solucao ) ) ); ?></strong></span>
+					<?php endif; ?>
+				</div>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $ocorrencia->solucao ) ) : ?>
+			<div id="sna-gs-solution-display" class="sna-gs-solution-text">
+				<?php echo nl2br( esc_html( $ocorrencia->solucao ) ); ?>
+			</div>
+			<textarea id="sna-gs-notes-textarea" placeholder="Adicione uma Solução sobre esta ocorrência..." rows="5" style="display: none;"><?php echo esc_textarea( $ocorrencia->solucao ); ?></textarea>
+		<?php else : ?>
+			<textarea id="sna-gs-notes-textarea" placeholder="Adicione uma Solução sobre esta ocorrência..." rows="5"><?php echo esc_textarea( $ocorrencia->solucao ); ?></textarea>
+			<div id="sna-gs-solution-display" class="sna-gs-solution-text" style="display: none;"></div>
+		<?php endif; ?>
 		<div class="sna-gs-notes-actions">
 			<div class="sna-gs-notes-actions-right">
-				<button id="sna-gs-delete-note-btn" class="button button-delete">Excluir Solução</button>
-				<button id="sna-gs-save-note-btn" class="button page-title-action">Salvar Solução</button>
+				<button id="sna-gs-delete-note-btn" class="button button-delete" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>" <?php echo empty( $ocorrencia->solucao ) ? 'style="display: none;"' : ''; ?>>Excluir Solução</button>
+				<button id="sna-gs-edit-solution-btn" class="button page-title-action" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>" <?php echo empty( $ocorrencia->solucao ) ? 'style="display: none;"' : ''; ?>>Editar Solução</button>
+				<button id="sna-gs-save-note-btn" class="button page-title-action" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>" <?php echo ! empty( $ocorrencia->solucao ) ? 'style="display: none;"' : ''; ?>>Salvar Solução</button>
 			</div>
 		</div>
 	</div>

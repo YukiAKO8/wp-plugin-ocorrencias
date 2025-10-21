@@ -26,22 +26,30 @@ if ( ! defined( 'WPINC' ) ) {
 		<table class="sna-gs-tabela-ocorrencias">
 			<thead>
 				<tr>
-					<th>ID</th>
 					<th>Título</th>
 					<th>Criado por</th>
+					<th>Status</th>
 					<th>Data de Registro</th>
 				</tr>
 			</thead>
 			<tbody>
 				<?php foreach ( $ocorrencias as $ocorrencia ) : ?>
 					<tr>
-						<td><?php echo esc_html( $ocorrencia->id ); ?></td>
 						<td>
 							<a href="#" class="sna-gs-view-details-link" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">
 								<?php echo esc_html( $ocorrencia->titulo ); ?>
 							</a>
 						</td>
 						<td><?php echo esc_html( $ocorrencia->display_name ?? 'Usuário não encontrado' ); ?></td>
+						<td>
+							<?php if ( 'aberto' === $ocorrencia->status ) : ?>
+								<span class="status-indicator status-aberto" title="Status: Aberto"></span>
+							<?php elseif ( 'solucionada' === $ocorrencia->status ) : ?>
+								<span class="status-indicator status-solucionada" title="Status: Solucionada"></span>
+							<?php else : ?>
+								<?php echo esc_html( ucfirst( $ocorrencia->status ) ); ?>
+							<?php endif; ?>
+						</td>
 						<td><?php echo esc_html( date( 'd/m/Y H:i', strtotime( $ocorrencia->data_registro ) ) ); ?></td>
 					</tr>
 				<?php endforeach; ?>
