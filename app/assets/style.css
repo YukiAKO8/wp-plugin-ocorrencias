@@ -90,8 +90,8 @@ body.ocorrencias_page_gs-dashboard {
 #sna-gs-form-ocorrencia-submit textarea {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #8c8f94;
-    border-radius: 10px !important;
+    border: 1px solid #8c8f94;    
+    border-radius: 30px !important;
     font-size: 15px;
     background: #ffffff;
     transition: 0.3s;
@@ -330,6 +330,19 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     background-color: #f0f2f5; 
 }
 
+/* Alinha a primeira coluna (Título) à esquerda */
+.sna-gs-tabela-ocorrencias th:first-child,
+.sna-gs-tabela-ocorrencias td:first-child {
+    text-align: left;
+}
+
+/* Alinha a quarta coluna (Data de Registro) à esquerda */
+.sna-gs-tabela-ocorrencias th:nth-child(4),
+.sna-gs-tabela-ocorrencias td:nth-child(4) { /* Alinha a quarta coluna (Data de Registro) à direita */
+    text-align: right; /* Alinha o texto à direita */
+    padding-right: 25px; /* Adiciona um espaçamento extra à direita */
+}
+
 
 .sna-gs-fab {
     position: fixed;
@@ -405,8 +418,8 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
 .sna-gs-details-content {
     margin-top: 20px;
     padding: 25px;
-    background: #f6f7f7;
-    border-radius: 4px;
+    background: #f6f7f7; /* Fundo cinza claro para o conteúdo */
+    border-radius: 30px; /* Arredondamento para o container de detalhes */
     margin-bottom: 30px;
 }
 
@@ -438,7 +451,7 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
 .sna-container-solução {
     padding: 25px;
     background: #f6f7f7;
-    border-radius: 4px;
+    border-radius: 30px; /* Arredondamento para o container cinza da solução */
     transition: all 0.3s ease;
 }
 
@@ -456,7 +469,7 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #8c8f94;
-    border-radius: 4px !important;
+    border-radius: 30px !important; /* Arredondamento para o campo de solução */
     font-size: 15px;
     background: #ffffff;
     transition: 0.3s;
@@ -635,7 +648,7 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     background: #fcfcfc;
     border: 1px solid #e0e0e0;
     padding: 10px 12px;
-    border-radius: 4px;
+    border-radius: 30px; /* Arredondamento para a exibição da solução */
     min-height: 100px; /* Para manter o espaço visual */
     line-height: 1.6;
     color: #333;
