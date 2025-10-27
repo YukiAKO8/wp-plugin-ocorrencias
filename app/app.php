@@ -37,6 +37,7 @@ class GS_Plugin_App {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 		add_action( 'wp_ajax_gs_load_view', array( $this, 'ajax_load_view' ) );
 		add_action( 'wp_ajax_gs_save_ocorrencia', array( $this, 'handle_form_submission' ) );
+		add_action( 'wp_ajax_gs_update_ocorrencia', array( $this, 'handle_update_submission' ) ); // New action for updating
 		add_action( 'wp_ajax_gs_increment_counter', array( $this, 'ajax_increment_counter' ) );
 		add_action( 'wp_ajax_gs_save_solution', array( $this, 'ajax_save_solution' ) );
 		add_action( 'wp_ajax_gs_delete_solution', array( $this, 'ajax_delete_solution' ) );
@@ -60,12 +61,30 @@ class GS_Plugin_App {
 		$titulo        = sanitize_text_field( wp_unslash( $_POST['titulo'] ) );
 		$descricao     = sanitize_textarea_field( wp_unslash( $_POST['descricao'] ) );
 		$data_registro = current_time( 'mysql' );
+		$imagem_url    = null;
+
+		// Lida com o upload da imagem
+		if ( isset( $_FILES['imagem_ocorrencia'] ) && ! empty( $_FILES['imagem_ocorrencia']['name'] ) ) {
+			if ( ! function_exists( 'wp_handle_upload' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
+			$uploadedfile     = $_FILES['imagem_ocorrencia'];
+			$upload_overrides = array( 'test_form' => false );
+			$movefile         = wp_handle_upload( $uploadedfile, $upload_overrides );
+
+			if ( $movefile && ! isset( $movefile['error'] ) ) {
+				$imagem_url = $movefile['url'];
+			} else {
+				wp_send_json_error( array( 'message' => 'Erro no upload da imagem: ' . $movefile['error'] ) );
+			}
+		}
 
 		$result = $wpdb->insert(
 			$table_name,
 			array(
 				'user_id'       => $user_id,
 				'user_role'     => $user_role,
+				'imagem_url'    => $imagem_url,
 				'titulo'        => $titulo,
 				'descricao'     => $descricao,
 				'data_registro' => $data_registro,
@@ -76,6 +95,80 @@ class GS_Plugin_App {
 			wp_send_json_success( array( 'message' => 'Ocorrência salva com sucesso!' ) );
 		} else {
 			wp_send_json_error( array( 'message' => 'Falha ao salvar a ocorrência.' ) );
+		}
+	}
+
+	/**
+	 * Lida com a submissão do formulário de edição de ocorrência.
+	 *
+	 * @since 1.0.0
+	 */
+	public function handle_update_submission() {
+		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
+
+		if ( ! isset( $_POST['ocorrencia_id'], $_POST['titulo'], $_POST['descricao'] ) ) {
+			wp_send_json_error( array( 'message' => 'Dados do formulário ausentes.' ) );
+		}
+
+		global $wpdb;
+		$table_name    = $wpdb->prefix . 'gs_ocorrencias';
+		$ocorrencia_id = absint( $_POST['ocorrencia_id'] );
+
+		// Busca a ocorrência existente para verificar permissões e imagem atual.
+		$existing_ocorrencia = $wpdb->get_row( $wpdb->prepare( "SELECT user_id, imagem_url FROM {$table_name} WHERE id = %d", $ocorrencia_id ) );
+
+		if ( ! $existing_ocorrencia ) {
+			wp_send_json_error( array( 'message' => 'Ocorrência não encontrada.' ) );
+		}
+
+		$current_user_id = get_current_user_id();
+		$can_edit        = ( (int) $current_user_id === (int) $existing_ocorrencia->user_id ) || current_user_can( 'manage_options' );
+
+		if ( ! $can_edit ) {
+			wp_send_json_error( array( 'message' => 'Você não tem permissão para editar esta ocorrência.' ) );
+		}
+
+		$titulo    = sanitize_text_field( wp_unslash( $_POST['titulo'] ) );
+		$descricao = sanitize_textarea_field( wp_unslash( $_POST['descricao'] ) );
+		$imagem_url = $existing_ocorrencia->imagem_url; // Mantém a imagem atual por padrão.
+
+		// Verifica se a imagem deve ser removida.
+		if ( isset( $_POST['remover_imagem'] ) && '1' === $_POST['remover_imagem'] ) {
+			$imagem_url = null; // Define como nulo para remover a imagem.
+		} elseif ( isset( $_FILES['imagem_ocorrencia'] ) && ! empty( $_FILES['imagem_ocorrencia']['name'] ) ) {
+			// Lida com o upload de uma nova imagem.
+			if ( ! function_exists( 'wp_handle_upload' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
+			$uploadedfile     = $_FILES['imagem_ocorrencia'];
+			$upload_overrides = array( 'test_form' => false );
+			$movefile         = wp_handle_upload( $uploadedfile, $upload_overrides );
+
+			if ( $movefile && ! isset( $movefile['error'] ) ) {
+				$imagem_url = $movefile['url'];
+			} else {
+				wp_send_json_error( array( 'message' => 'Erro no upload da nova imagem: ' . $movefile['error'] ) );
+			}
+		}
+
+		$result = $wpdb->update(
+			$table_name,
+			array(
+				'titulo'    => $titulo,
+				'descricao' => $descricao,
+				'imagem_url' => $imagem_url,
+			),
+			array( 'id' => $ocorrencia_id ),
+			array( '%s', '%s', '%s' ),
+			array( '%d' )
+		);
+
+		if ( false === $result ) {
+			wp_send_json_error( array( 'message' => 'Falha ao atualizar a ocorrência no banco de dados.' ) );
+		} elseif ( 0 === $result ) {
+			wp_send_json_success( array( 'message' => 'Nenhuma alteração detectada. Ocorrência não atualizada.' ) );
+		} else {
+			wp_send_json_success( array( 'message' => 'Ocorrência atualizada com sucesso!' ) );
 		}
 	}
 

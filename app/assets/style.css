@@ -423,6 +423,13 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     margin-bottom: 30px;
 }
 
+.sna-gs-details-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
 .sna-gs-details-titulo {
     font-size: 24px;
     font-weight: 700;
@@ -446,6 +453,18 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     font-size: 16px;
     line-height: 1.7;
     color: #3c4043;
+}
+
+.sna-gs-details-imagem {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.sna-gs-details-imagem img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid #dcdcde;
 }
 
 .sna-container-solução {
@@ -522,6 +541,54 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     color: #f9a825 !important;
     box-shadow: 0 0 12px rgba(255, 241, 118, 0.6) !important; /* Efeito de iluminação amarelo */
 }
+
+/* Estilo para o botão Editar Ocorrência */
+.button-edit {
+    background: #fffde7 !important; /* Fundo amarelo claro */
+    border-color: #fff176 !important; /* Borda amarela */
+    color: #fbc02d !important; /* Texto amarelo escuro */
+    padding: 5px 15px !important; /* Padding menor para caber na tabela */
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    border-radius: 30px !important; /* Adiciona o arredondamento */
+}
+
+/* Estilo para o botão de upload de arquivo */
+.button-file-upload {
+    background: #e0f2f7 !important; /* Fundo azul claro */
+    border-color: #81d4fa !important; /* Borda azul */
+    color: #0277bd !important; /* Texto azul escuro */
+    padding: 8px 20px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    border-radius: 30px !important; /* Arredondado */
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    display: inline-flex; /* Para alinhar texto e potencialmente um ícone */
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px; /* Espaço abaixo do botão */
+}
+.sna-gs-details-header .button-edit { padding: 8px 20px !important; }
+
+.button-edit:hover {
+    background: #fff9c4 !important; /* Amarelo um pouco mais escuro no hover */
+    border-color: #ffee58 !important;
+    color: #f9a825 !important;
+    box-shadow: 0 0 12px rgba(255, 241, 118, 0.6) !important; /* Efeito de iluminação amarelo */
+}
+
+.button-file-upload:hover {
+    background: #b3e5fc !important; /* Azul um pouco mais escuro no hover */
+    border-color: #4fc3f7 !important;
+    color: #01579b !important;
+    box-shadow: 0 0 12px rgba(129, 212, 250, 0.6) !important; /* Efeito de iluminação azul */
+}
+
 
 .sna-gs-details-counter {
     margin-top: 0;

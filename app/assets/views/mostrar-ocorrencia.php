@@ -17,7 +17,16 @@ if ( ! defined( 'WPINC' ) ) {
 <div id="sna-gs-details-view">
 
 	<div class="sna-gs-details-content">
-		<h2 class="sna-gs-details-titulo"><?php echo esc_html( $ocorrencia->titulo ); ?></h2>
+		<div class="sna-gs-details-header">
+			<h2 class="sna-gs-details-titulo"><?php echo esc_html( $ocorrencia->titulo ); ?></h2>
+			<?php
+			// Verifica se o usuário atual pode editar a ocorrência.
+			$current_user_id = get_current_user_id();
+			$can_edit_occurrence = ( (int) $current_user_id === (int) $ocorrencia->user_id ) || current_user_can( 'manage_options' );
+			if ( $can_edit_occurrence ) : ?>
+				<a href="#" id="sna-gs-edit-occurrence-btn" class="button button-edit" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Editar Ocorrência</a>
+			<?php endif; ?>
+		</div>
 
 		<div class="sna-gs-details-meta">
 			<div class="sna-gs-meta-info">
@@ -34,6 +43,13 @@ if ( ! defined( 'WPINC' ) ) {
 		<div class="sna-gs-details-descricao">
 			<?php echo nl2br( esc_html( $ocorrencia->descricao ) ); ?>
 		</div>
+
+		<?php if ( ! empty( $ocorrencia->imagem_url ) ) : ?>
+			<div class="sna-gs-details-imagem">
+				<img src="<?php echo esc_url( $ocorrencia->imagem_url ); ?>" alt="Imagem da ocorrência: <?php echo esc_attr( $ocorrencia->titulo ); ?>">
+			</div>
+		<?php endif; ?>
+
 	</div>
 </div>
 

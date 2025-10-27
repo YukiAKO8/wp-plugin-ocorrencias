@@ -61,6 +61,20 @@ jQuery(document).ready(function ($) {
         loadView('details', { id: ocorrenciaId });
     });
 
+    container.on('click', '#sna-gs-edit-occurrence-btn', function (e) {
+        e.preventDefault();
+        const ocorrenciaId = $(this).data('id');
+
+        $('.toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline').text('Editando Ocorrência');
+        $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description').html(
+            'Edite os detalhes da ocorrência existente. Você pode atualizar o título, a descrição e a imagem.<br>' +
+            'Apenas o criador da ocorrência ou um administrador pode realizar esta ação.'
+        );
+        $('#sna-gs-load-form-btn').fadeOut(); // Hide "Nova Ocorrência" button
+        loadView('form', { id: ocorrenciaId }); // Load the form view with occurrence ID
+    });
+
+
    
     container.on('click', '#sna-gs-increment-btn', function (e) {
         e.preventDefault();
@@ -150,33 +164,63 @@ container.on('click', '.sna-gs-pagination-arrow:not(:disabled)', function (e) {
         }
     });
 });
+
 container.on('submit', '#sna-gs-form-ocorrencia-submit', function (e) {
-    e.preventDefault();
-
-    const form = $(this);
-    const submitButton = form.find('button[type="submit"]');
-    submitButton.prop('disabled', true).text('Salvando...');
-
-    $.ajax({
-        url: ajaxurl,
-        type: 'POST',
-        data: {
-            action: 'gs_save_ocorrencia',
-            nonce: gs_ajax_object.nonce,
-            titulo: form.find('#sna-gs-titulo-ocorrencia').val(),
-            descricao: form.find('#sna-gs-descricao-ocorrencia').val()
-        },
-        success: function (response) {
-            if (response.success) {
-                $('#sna-gs-load-form-btn').fadeIn();
-                loadView('list'); 
-            } else {
-                alert('Erro: ' + response.data.message);
-                submitButton.prop('disabled', false).text('Salvar Ocorrência');
-            }
+        e.preventDefault();
+    
+        const form = $(this);
+        const submitButton = form.find('button[type="submit"]');
+        submitButton.prop('disabled', true);
+    
+        const formData = new FormData();
+        formData.append('nonce', gs_ajax_object.nonce);
+    
+        const ocorrenciaId = form.find('input[name="ocorrencia_id"]').val();
+        const isEditing = !!ocorrenciaId; // Verifica se ocorrencia_id existe
+    
+        // Determina a ação com base se é uma edição ou nova ocorrência
+        formData.append('action', isEditing ? 'gs_update_ocorrencia' : 'gs_save_ocorrencia');
+    
+        if (isEditing) {
+            formData.append('ocorrencia_id', ocorrenciaId);
+            submitButton.text('Atualizando...');
+        } else {
+            submitButton.text('Salvando...');
         }
+    
+        formData.append('titulo', form.find('#sna-gs-titulo-ocorrencia').val());
+        formData.append('descricao', form.find('#sna-gs-descricao-ocorrencia').val());
+    
+        const imageFile = form.find('#sna-gs-imagem-ocorrencia')[0].files[0];
+        if (imageFile) {
+            formData.append('imagem_ocorrencia', imageFile);
+        } else if (isEditing && form.find('#sna-gs-remover-imagem').is(':checked')) {
+            formData.append('remover_imagem', '1');
+        }
+    
+    
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: formData,
+            processData: false, // Importante para FormData
+            contentType: false, // Importante para FormData
+            success: function (response) {
+                if (response.success) {
+                    alert(response.data.message);
+                    $('#sna-gs-load-form-btn').fadeIn();
+                    loadView('list');
+                } else {
+                    alert('Erro: ' + response.data.message);
+                    submitButton.prop('disabled', false).text(isEditing ? 'Atualizar Ocorrência' : 'Salvar Ocorrência');
+                }
+            },
+            error: function () {
+                alert('Ocorreu um erro ao tentar ' + (isEditing ? 'atualizar' : 'salvar') + ' a ocorrência.');
+                submitButton.prop('disabled', false).text(isEditing ? 'Atualizar Ocorrência' : 'Salvar Ocorrência');
+            }
+        });
     });
-});
 
     function updateSolutionMeta(solucionadoPorName, dataHoraSolucao) {
         const solutionMetaDiv = container.find('.sna-gs-solution-meta');

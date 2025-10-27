@@ -29,6 +29,7 @@ class GS_Plugin_DB {
 			user_role varchar(255) NULL,
 			titulo text NOT NULL,
 			descricao longtext NOT NULL, 
+			imagem_url text NULL,
 			data_registro datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			status varchar(50) DEFAULT 'aberto' NOT NULL,
 			solucao longtext NULL,

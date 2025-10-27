@@ -1,126 +1,112 @@
 <?php
+/**
+ * Controlador AJAX para carregar diferentes views do plugin.
+ *
+ * @package GS_Plugin
+ * @since   1.0.0
+ */
+
+// Se este arquivo for chamado diretamente, aborte.
 if ( ! defined( 'WPINC' ) ) {
-    die;
+	die;
 }
 
 class GS_Ajax_Controller {
+	/**
+	 * Carrega a view solicitada via AJAX.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function load_view() {
+		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
 
-    public static function load_view() {
-        check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
+		$view = isset( $_POST['view'] ) ? sanitize_text_field( wp_unslash( $_POST['view'] ) ) : '';
 
-        global $wpdb;
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'gs_ocorrencias';
 
-        $view = isset( $_POST['view'] ) ? sanitize_key( $_POST['view'] ) : 'list';
+		switch ( $view ) {
+			case 'form':
+				$ocorrencia = null;
+				$ocorrencia_id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+				if ( $ocorrencia_id ) {
+					$ocorrencia = $wpdb->get_row( $wpdb->prepare(
+						"SELECT o.* FROM {$table_name} o WHERE o.id = %d",
+						$ocorrencia_id
+					) );
+					// Check permission before loading form for editing
+					if ( $ocorrencia ) {
+						$current_user_id = get_current_user_id();
+						$can_edit        = ( (int) $current_user_id === (int) $ocorrencia->user_id ) || current_user_can( 'manage_options' );
+						if ( ! $can_edit ) {
+							echo '<p>Você não tem permissão para editar esta ocorrência.</p>';
+							wp_die();
+						}
+					}
+				}
+				include GS_PLUGIN_PATH . 'app/assets/views/formulario-gestao.php';
+				break;
+			case 'list':
+				$items_per_page = 8;
+				$current_page   = isset( $_POST['paged'] ) ? absint( $_POST['paged'] ) : 1;
+				$offset         = ( $current_page - 1 ) * $items_per_page;
+				$search_term    = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
 
-        if ( 'form' === $view ) {
-            require_once GS_PLUGIN_PATH . 'app/assets/views/formulario-gestao.php';
+				$current_user = wp_get_current_user();
+				$user_role    = ! empty( $current_user->roles ) ? $current_user->roles[0] : null;
 
-        } elseif ( 'details' === $view && isset( $_POST['id'] ) ) {
+				$where_clause = '';
+				$prepare_args = array();
 
-            $id          = absint( $_POST['id'] );
-            $table_name  = $wpdb->prefix . 'gs_ocorrencias';
+				if ( ! current_user_can( 'manage_options' ) && $user_role ) {
+					$where_clause   = ' WHERE o.user_role = %s';
+					$prepare_args[] = $user_role;
+				}
 
-            $ocorrencia = $wpdb->get_row(
-                $wpdb->prepare(
-                    "SELECT o.*, u.display_name, s.display_name as solucionado_por_name
-                     FROM {$table_name} o
-                     LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID
-                     LEFT JOIN {$wpdb->users} s ON o.solucionado_por = s.ID
-                     WHERE o.id = %d",
-                    $id
-                )
-            );
+				if ( ! empty( $search_term ) ) {
+					$search_like    = '%' . $wpdb->esc_like( $search_term ) . '%';
+					if ( empty( $where_clause ) ) {
+						$where_clause = ' WHERE';
+					} else {
+						$where_clause .= ' AND';
+					}
+					$where_clause .= ' (o.titulo LIKE %s OR o.descricao LIKE %s)';
+					$prepare_args[] = $search_like;
+					$prepare_args[] = $search_like;
+				}
 
-            if ( $ocorrencia ) {
-                require_once GS_PLUGIN_PATH . 'app/assets/views/mostrar-ocorrencia.php';
-            }
+				$total_items_query = "SELECT COUNT(o.id) FROM {$table_name} o" . $where_clause;
+				$total_items       = $wpdb->get_var( $wpdb->prepare( $total_items_query, $prepare_args ) );
+				$total_pages       = ceil( $total_items / $items_per_page );
 
-        } else {
-            $table_name     = $wpdb->prefix . 'gs_ocorrencias';
-            $items_per_page = 8;
-            $current_page   = isset( $_POST['paged'] ) ? absint( $_POST['paged'] ) : 1;
-            $offset         = ( $current_page - 1 ) * $items_per_page;
+				$query_args = array_merge( $prepare_args, array( $items_per_page, $offset ) );
 
-            // Lógica de busca
-            $search_term  = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
-            $where_clauses = array();
-            $prepare_args = array();
-
-            // Filtro por user_role
-            $current_user = wp_get_current_user();
-            $user_role    = ! empty( $current_user->roles ) ? $current_user->roles[0] : null;
-            if ( ! current_user_can( 'manage_options' ) && $user_role ) {
-                $where_clauses[] = 'o.user_role = %s';
-                $prepare_args[]  = $user_role;
-            }
-
-            // Filtro por termo de busca
-            if ( ! empty( $search_term ) ) {
-                $like_term      = '%' . $wpdb->esc_like( $search_term ) . '%';
-                $where_clauses[] = '(o.titulo LIKE %s OR o.descricao LIKE %s)';
-                $prepare_args[] = $like_term;
-                $prepare_args[] = $like_term;
-            }
-
-            $where_sql = ! empty( $where_clauses ) ? ' WHERE ' . implode( ' AND ', $where_clauses ) : '';
-
-            $total_items_query = "SELECT COUNT(o.id) FROM {$table_name} o" . $where_sql;
-            $total_items       = (int) $wpdb->get_var( $wpdb->prepare( $total_items_query, $prepare_args ) );
-            $total_pages = ceil( $total_items / $items_per_page );
-
-            $prepare_args[] = $items_per_page;
-            $prepare_args[] = $offset;
-
-            $query = "SELECT o.*, u.display_name, o.contador FROM {$table_name} o 
-                      LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID" .
-                      $where_sql . ' ORDER BY o.data_registro DESC LIMIT %d OFFSET %d';
-
-            $ocorrencias = $wpdb->get_results( $wpdb->prepare( $query, $prepare_args ) );
-
-            require GS_PLUGIN_PATH . 'app/assets/views/lista-ocorrencias.php';
-        }
-
-        wp_die();
-    }
-}
-
-// =======================
-// AÇÃO PARA INCREMENTAR CONTADOR
-// =======================
-add_action('wp_ajax_gs_increment_counter', 'gs_increment_counter');
-
-function gs_increment_counter() {
-    check_ajax_referer('gs_ajax_nonce', 'nonce');
-
-    if ( ! isset($_POST['id']) ) {
-        wp_send_json_error(['message' => 'ID inválido.']);
-    }
-
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'gs_ocorrencias';
-    $id = absint($_POST['id']);
-
-
-    $exists = $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$table_name} WHERE id = %d",
-        $id
-    ) );
-
-    if ( ! $exists ) {
-        wp_send_json_error(['message' => 'Ocorrência não encontrada.']);
-    }
-
-  
-    $wpdb->query( $wpdb->prepare(
-        "UPDATE {$table_name} SET contador = COALESCE(contador, 0) + 1 WHERE id = %d",
-        $id
-    ) );
-
-
-    $new_count = $wpdb->get_var( $wpdb->prepare(
-        "SELECT contador FROM {$table_name} WHERE id = %d",
-        $id
-    ) );
-
-    wp_send_json_success(['new_count' => $new_count]);
+				$ocorrencias = $wpdb->get_results( $wpdb->prepare(
+					"SELECT o.*, u.display_name FROM {$table_name} o LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID" . $where_clause . ' ORDER BY o.data_registro DESC LIMIT %d OFFSET %d',
+					$query_args
+				) );
+				include GS_PLUGIN_PATH . 'app/assets/views/lista-ocorrencias.php';
+				break;
+			case 'details':
+				$ocorrencia_id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+				if ( $ocorrencia_id ) {
+					$ocorrencia = $wpdb->get_row( $wpdb->prepare(
+						"SELECT o.*, u.display_name, us.display_name as solucionado_por_name FROM {$table_name} o LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID LEFT JOIN {$wpdb->users} us ON o.solucionado_por = us.ID WHERE o.id = %d",
+						$ocorrencia_id
+					) );
+					if ( $ocorrencia ) {
+						include GS_PLUGIN_PATH . 'app/assets/views/mostrar-ocorrencia.php';
+					} else {
+						echo '<p>Ocorrência não encontrada.</p>';
+					}
+				} else {
+					echo '<p>ID da ocorrência não fornecido.</p>';
+				}
+				break;
+			default:
+				echo '<p>View não encontrada.</p>';
+				break;
+		}
+		wp_die();
+	}
 }
