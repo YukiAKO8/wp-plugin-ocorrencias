@@ -40,17 +40,25 @@ $form_title = $is_editing ? 'Atualizar Ocorrência' : 'Salvar Ocorrência';
 			<label for="sna-gs-imagem-ocorrencia" class="button button-file-upload">
 				+ Nova Imagem (Opcional)
 			</label>
-			<?php if ( $is_editing && ! empty( $ocorrencia->imagem_url ) ) : ?>
-				<p>Imagem atual:</p>
-				<img src="<?php echo esc_url( $ocorrencia->imagem_url ); ?>" style="max-width: 200px; height: auto; display: block; margin-bottom: 10px; border-radius: 8px;">
-				<input type="checkbox" id="sna-gs-remover-imagem" name="sna-gs-remover-imagem" value="1">
-				<label for="sna-gs-remover-imagem" style="display: inline-block; margin-bottom: 15px;">Remover imagem atual</label>
-				<br>
+			<input type="file" id="sna-gs-imagem-ocorrencia" name="sna-gs-imagem-ocorrencia[]" accept="image/*" multiple style="display: none;">
+
+			<div id="sna-gs-image-preview-container" data-existing-images="<?php echo esc_attr( $is_editing && isset( $ocorrencia->imagens ) ? count( $ocorrencia->imagens ) : 0 ); ?>"></div>
+
+			<?php if ( $is_editing && ! empty( $ocorrencia->imagens ) ) : ?>
+				<div class="sna-gs-current-images-wrapper">
+					<p>Imagens atuais:</p>
+					<?php foreach ( $ocorrencia->imagens as $image ) : ?>
+						<div class="sna-gs-current-image-item">
+							<img src="<?php echo esc_url( $image->display_url ); ?>" alt="Imagem existente">
+							<input type="checkbox" name="removed_image_ids[]" value="<?php echo esc_attr( $image->id ); ?>" class="sna-gs-remove-image-checkbox" style="display: none;">
+							<span class="remove-existing-image" data-image-id="<?php echo esc_attr( $image->id ); ?>" title="Remover esta imagem">&times;</span>
+						</div>
+					<?php endforeach; ?>
+				</div>
 			<?php endif; ?>
-			<input type="file" id="sna-gs-imagem-ocorrencia" name="sna-gs-imagem-ocorrencia" accept="image/*" style="display: none;">
-			<?php if ( $is_editing ) : ?>
-				<p class="description" style="margin-top: 5px;">Selecione um novo arquivo para substituir a imagem atual.</p>
-			<?php endif; ?>
+			<p class="description" style="margin-top: 5px;">
+				<?php echo $is_editing ? 'Adicione novas imagens ou clique no "X" para remover as existentes.' : 'Selecione até 4 arquivos de imagem para esta ocorrência.'; ?>
+			</p>
 		</div>
 
 		<div class="sna-gs-form-actions">

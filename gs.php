@@ -79,6 +79,10 @@ final class GS_Plugin {
 		define( 'GS_PLUGIN_FILE', __FILE__ );
 		define( 'GS_PLUGIN_PATH', plugin_dir_path( GS_PLUGIN_FILE ) );
 		define( 'GS_PLUGIN_URL', plugin_dir_url( GS_PLUGIN_FILE ) );
+
+		// ATENÇÃO: Substitua 'SEU_ID_DA_PASTA_DO_GOOGLE_DRIVE' pelo ID da pasta de destino.
+		define( 'GS_DRIVE_FOLDER_ID', 'SEU_ID_DA_PASTA_DO_GOOGLE_DRIVE' );
+
 	}
 
 	/**
@@ -89,6 +93,11 @@ final class GS_Plugin {
 	private function includes() {
 		// Carrega o arquivo principal da aplicação.
 		require_once GS_PLUGIN_PATH . 'utils/db.php';
+
+		// Carrega as funções de upload para o Google Drive.
+		
+			require_once WP_PLUGIN_DIR . '/sna-helpers/includes/googleDriveFunctions.php';
+		
 		require_once GS_PLUGIN_PATH . 'app/app.php';
 	}
 

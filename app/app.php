@@ -41,6 +41,7 @@ class GS_Plugin_App {
 		add_action( 'wp_ajax_gs_increment_counter', array( $this, 'ajax_increment_counter' ) );
 		add_action( 'wp_ajax_gs_save_solution', array( $this, 'ajax_save_solution' ) );
 		add_action( 'wp_ajax_gs_delete_solution', array( $this, 'ajax_delete_solution' ) );
+		add_action( 'wp_ajax_gs_delete_ocorrencia', array( $this, 'ajax_delete_ocorrencia' ) );
 	}
 
 	public function handle_form_submission() {
@@ -61,41 +62,56 @@ class GS_Plugin_App {
 		$titulo        = sanitize_text_field( wp_unslash( $_POST['titulo'] ) );
 		$descricao     = sanitize_textarea_field( wp_unslash( $_POST['descricao'] ) );
 		$data_registro = current_time( 'mysql' );
-		$imagem_url    = null;
-
-		// Lida com o upload da imagem
-		if ( isset( $_FILES['imagem_ocorrencia'] ) && ! empty( $_FILES['imagem_ocorrencia']['name'] ) ) {
-			if ( ! function_exists( 'wp_handle_upload' ) ) {
-				require_once ABSPATH . 'wp-admin/includes/file.php';
-			}
-			$uploadedfile     = $_FILES['imagem_ocorrencia'];
-			$upload_overrides = array( 'test_form' => false );
-			$movefile         = wp_handle_upload( $uploadedfile, $upload_overrides );
-
-			if ( $movefile && ! isset( $movefile['error'] ) ) {
-				$imagem_url = $movefile['url'];
-			} else {
-				wp_send_json_error( array( 'message' => 'Erro no upload da imagem: ' . $movefile['error'] ) );
-			}
-		}
 
 		$result = $wpdb->insert(
 			$table_name,
 			array(
 				'user_id'       => $user_id,
 				'user_role'     => $user_role,
-				'imagem_url'    => $imagem_url,
 				'titulo'        => $titulo,
 				'descricao'     => $descricao,
 				'data_registro' => $data_registro,
 			)
 		);
 
-		if ( $result ) {
-			wp_send_json_success( array( 'message' => 'Ocorrência salva com sucesso!' ) );
-		} else {
+		if ( ! $result ) {
 			wp_send_json_error( array( 'message' => 'Falha ao salvar a ocorrência.' ) );
 		}
+
+		$ocorrencia_id = $wpdb->insert_id;
+
+		// Lida com o upload de múltiplas imagens e salva na tabela de imagens
+		if ( isset( $_FILES['imagem_ocorrencia'] ) && is_array( $_FILES['imagem_ocorrencia']['name'] ) ) {
+			$files = $_FILES['imagem_ocorrencia'];
+			$table_imagens = $wpdb->prefix . 'gs_imagens_ocorrencias';
+
+			for ( $i = 0; $i < count( $files['name'] ); $i++ ) {
+				if ( $files['error'][ $i ] === UPLOAD_ERR_OK ) {
+					$file_data = array(
+						'name'     => $files['name'][ $i ],
+						'type'     => $files['type'][ $i ],
+						'tmp_name' => $files['tmp_name'][ $i ],
+						'error'    => $files['error'][ $i ],
+						'size'     => $files['size'][ $i ],
+					);
+					if ( function_exists( 'uploadFilesWPDrive' ) ) {
+						$drive_file_response = uploadFilesWPDrive( $file_data, $file_data['name'], 'gestao_ocorrencias' );
+						if ( isset( $drive_file_response['resposta']['id'] ) ) {
+							$wpdb->insert(
+								$table_imagens,
+								array(
+									'ocorrencia_id'   => $ocorrencia_id,
+									'imagem_url'      => $drive_file_response['resposta']['webViewLink'] ?? '',
+									'imagem_id_drive' => $drive_file_response['resposta']['id'],
+								)
+							);
+						}
+					}
+				}
+			}
+		}
+
+		wp_send_json_success( array( 'message' => 'Ocorrência salva com sucesso!' ) );
 	}
 
 	/**
@@ -111,11 +127,12 @@ class GS_Plugin_App {
 		}
 
 		global $wpdb;
-		$table_name    = $wpdb->prefix . 'gs_ocorrencias';
-		$ocorrencia_id = absint( $_POST['ocorrencia_id'] );
+		$table_ocorrencias = $wpdb->prefix . 'gs_ocorrencias';
+		$table_imagens     = $wpdb->prefix . 'gs_imagens_ocorrencias';
+		$ocorrencia_id     = absint( $_POST['ocorrencia_id'] );
 
-		// Busca a ocorrência existente para verificar permissões e imagem atual.
-		$existing_ocorrencia = $wpdb->get_row( $wpdb->prepare( "SELECT user_id, imagem_url FROM {$table_name} WHERE id = %d", $ocorrencia_id ) );
+		// Busca a ocorrência existente para verificar permissões.
+		$existing_ocorrencia = $wpdb->get_row( $wpdb->prepare( "SELECT id, user_id FROM {$table_ocorrencias} WHERE id = %d", $ocorrencia_id ) );
 
 		if ( ! $existing_ocorrencia ) {
 			wp_send_json_error( array( 'message' => 'Ocorrência não encontrada.' ) );
@@ -130,47 +147,158 @@ class GS_Plugin_App {
 
 		$titulo    = sanitize_text_field( wp_unslash( $_POST['titulo'] ) );
 		$descricao = sanitize_textarea_field( wp_unslash( $_POST['descricao'] ) );
-		$imagem_url = $existing_ocorrencia->imagem_url; // Mantém a imagem atual por padrão.
 
-		// Verifica se a imagem deve ser removida.
-		if ( isset( $_POST['remover_imagem'] ) && '1' === $_POST['remover_imagem'] ) {
-			$imagem_url = null; // Define como nulo para remover a imagem.
-		} elseif ( isset( $_FILES['imagem_ocorrencia'] ) && ! empty( $_FILES['imagem_ocorrencia']['name'] ) ) {
-			// Lida com o upload de uma nova imagem.
-			if ( ! function_exists( 'wp_handle_upload' ) ) {
-				require_once ABSPATH . 'wp-admin/includes/file.php';
+		// Lógica para gerenciar imagens na atualização
+		$images_removed_count = 0;
+		error_log( 'GS_Plugin_App::handle_update_submission - Ocorrência ID: ' . $ocorrencia_id );
+		// Lida com a remoção de imagens existentes
+		if ( isset( $_POST['removed_image_ids'] ) && is_array( $_POST['removed_image_ids'] ) ) {
+			error_log( 'GS_Plugin_App::handle_update_submission - IDs de imagens a serem removidas: ' . implode( ', ', $_POST['removed_image_ids'] ) );
+			foreach ( $_POST['removed_image_ids'] as $image_db_id ) {
+				$image_db_id = absint( $image_db_id );
+				error_log( 'GS_Plugin_App::handle_update_submission - Tentando remover imagem_db_id: ' . $image_db_id );
+				$image_data = $wpdb->get_row( $wpdb->prepare( "SELECT imagem_id_drive FROM {$table_imagens} WHERE id = %d AND ocorrencia_id = %d", $image_db_id, $ocorrencia_id ) );
+				// Garante que a imagem foi encontrada e que o ID do Drive não está vazio antes de tentar deletar.
+				if ( $image_data && ! empty( $image_data->imagem_id_drive ) && function_exists( 'deleteFileWPDrive' ) ) {
+					error_log( 'GS_Plugin_App::handle_update_submission - Chamando deleteFileWPDrive para ID do Drive: ' . $image_data->imagem_id_drive );
+					$delete_drive_result = deleteFileWPDrive( $image_data->imagem_id_drive );
+					error_log( 'GS_Plugin_App::handle_update_submission - Resultado deleteFileWPDrive: ' . print_r( $delete_drive_result, true ) );
+				}
+
+				$delete_db_result = $wpdb->delete( $table_imagens, array( 'id' => $image_db_id, 'ocorrencia_id' => $ocorrencia_id ) );
+				error_log( 'GS_Plugin_App::handle_update_submission - Resultado wpdb->delete para imagem_db_id ' . $image_db_id . ': ' . $delete_db_result );
+				if ( false !== $delete_db_result && $delete_db_result > 0 ) { // Verifica se a exclusão foi bem-sucedida
+					$images_removed_count++;
+				} elseif ( false === $delete_db_result ) {
+					error_log( 'GS_Plugin_App::handle_update_submission - wpdb->delete falhou para imagem_db_id ' . $image_db_id . '. Erro: ' . $wpdb->last_error );
+				}
 			}
-			$uploadedfile     = $_FILES['imagem_ocorrencia'];
-			$upload_overrides = array( 'test_form' => false );
-			$movefile         = wp_handle_upload( $uploadedfile, $upload_overrides );
+		}
 
-			if ( $movefile && ! isset( $movefile['error'] ) ) {
-				$imagem_url = $movefile['url'];
-			} else {
-				wp_send_json_error( array( 'message' => 'Erro no upload da nova imagem: ' . $movefile['error'] ) );
+		// Lida com o upload de novas imagens
+		$new_images_added = false;
+		if ( isset( $_FILES['imagem_ocorrencia'] ) && is_array( $_FILES['imagem_ocorrencia']['name'] ) ) {
+			$files = $_FILES['imagem_ocorrencia'];
+			$table_imagens = $wpdb->prefix . 'gs_imagens_ocorrencias';
+
+			for ( $i = 0; $i < count( $files['name'] ); $i++ ) {
+				// Apenas processa se um arquivo foi realmente enviado para este índice
+				if ( $files['error'][ $i ] === UPLOAD_ERR_OK ) {
+					$file_data = array(
+						'name'     => $files['name'][ $i ],
+						'type'     => $files['type'][ $i ],
+						'tmp_name' => $files['tmp_name'][ $i ],
+						'error'    => $files['error'][ $i ],
+						'size'     => $files['size'][ $i ],
+					);
+					if ( function_exists( 'uploadFilesWPDrive' ) ) {
+						$drive_file_response = uploadFilesWPDrive( $file_data, $file_data['name'], 'gestao_ocorrencias' );
+						if ( isset( $drive_file_response['resposta']['id'] ) ) {
+							$wpdb->insert(
+								$table_imagens,
+								array(
+									'ocorrencia_id'   => $ocorrencia_id,
+									'imagem_url'      => $drive_file_response['resposta']['webViewLink'] ?? '',
+									'imagem_id_drive' => $drive_file_response['resposta']['id'],
+								)
+							);
+							$new_images_added = true;
+						}
+					}
+				}
 			}
 		}
 
 		$result = $wpdb->update(
-			$table_name,
+			$table_ocorrencias,
 			array(
 				'titulo'    => $titulo,
 				'descricao' => $descricao,
-				'imagem_url' => $imagem_url,
 			),
 			array( 'id' => $ocorrencia_id ),
-			array( '%s', '%s', '%s' ),
+			array( '%s', '%s' ),
 			array( '%d' )
 		);
 
+		// Constrói a mensagem de sucesso com base nas ações realizadas.
 		if ( false === $result ) {
 			wp_send_json_error( array( 'message' => 'Falha ao atualizar a ocorrência no banco de dados.' ) );
-		} elseif ( 0 === $result ) {
-			wp_send_json_success( array( 'message' => 'Nenhuma alteração detectada. Ocorrência não atualizada.' ) );
+		}
+
+		// Esta lógica agora está fora do 'else' para ser sempre executada.
+		$messages = array();
+		if ( $result > 0 ) {
+			$messages[] = 'Ocorrência atualizada com sucesso.';
+		}
+		if ( $images_removed_count > 0 ) {
+			$messages[] = "$images_removed_count imagem(ns) removida(s).";
+		}
+		if ( $new_images_added ) {
+			$messages[] = 'Novas imagens foram adicionadas.';
+		}
+
+		$final_message = ! empty( $messages ) ? implode( ' ', $messages ) : 'Nenhuma alteração detectada.';
+		wp_send_json_success( array( 'message' => $final_message, 'action_taken' => ! empty( $messages ) ) );
+	}
+
+	/**
+	 * Callback AJAX para excluir uma ocorrência e seus dados associados.
+	 *
+	 * @since 1.0.0
+	 */
+	public function ajax_delete_ocorrencia() {
+		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
+
+		if ( ! isset( $_POST['id'] ) ) {
+			wp_send_json_error( array( 'message' => 'ID da ocorrência ausente.' ) );
+		}
+
+		global $wpdb;
+		$ocorrencia_id     = absint( $_POST['id'] );
+		$table_ocorrencias = $wpdb->prefix . 'gs_ocorrencias';
+		$table_imagens     = $wpdb->prefix . 'gs_imagens_ocorrencias';
+
+		// Busca a ocorrência para verificar permissões.
+		$ocorrencia = $wpdb->get_row( $wpdb->prepare( "SELECT id, user_id FROM {$table_ocorrencias} WHERE id = %d", $ocorrencia_id ) );
+		if ( ! $ocorrencia ) {
+			wp_send_json_error( array( 'message' => 'Ocorrência não encontrada.' ) );
+		}
+
+		// Verifica permissão.
+		$current_user_id = get_current_user_id();
+		$can_delete      = ( (int) $current_user_id === (int) $ocorrencia->user_id ) || current_user_can( 'manage_options' );
+		if ( ! $can_delete ) {
+			wp_send_json_error( array( 'message' => 'Você não tem permissão para excluir esta ocorrência.' ) );
+		}
+
+		// 1. Excluir imagens do Google Drive.
+		$imagens_a_deletar = $wpdb->get_results( $wpdb->prepare( "SELECT imagem_id_drive FROM {$table_imagens} WHERE ocorrencia_id = %d", $ocorrencia_id ) );
+		if ( ! empty( $imagens_a_deletar ) && function_exists( 'deleteFileWPDrive' ) ) {
+			foreach ( $imagens_a_deletar as $imagem ) {
+				if ( ! empty( $imagem->imagem_id_drive ) ) {
+					deleteFileWPDrive( $imagem->imagem_id_drive );
+				}
+			}
+		}
+
+		// 2. Excluir registros de imagens do banco de dados.
+		$wpdb->delete( $table_imagens, array( 'ocorrencia_id' => $ocorrencia_id ), array( '%d' ) );
+
+		// 3. Excluir a ocorrência principal.
+		$result = $wpdb->delete( $table_ocorrencias, array( 'id' => $ocorrencia_id ), array( '%d' ) );
+
+		if ( false === $result ) {
+			wp_send_json_error( array( 'message' => 'Falha ao excluir a ocorrência do banco de dados.' ) );
+		}
+
+		if ( $result > 0 ) {
+			wp_send_json_success( array( 'message' => 'Ocorrência excluída com sucesso!' ) );
 		} else {
-			wp_send_json_success( array( 'message' => 'Ocorrência atualizada com sucesso!' ) );
+			// Isso pode acontecer se a ocorrência já foi excluída em outra aba, por exemplo.
+			wp_send_json_error( array( 'message' => 'A ocorrência não pôde ser encontrada para exclusão (pode já ter sido removida).' ) );
 		}
 	}
+
 
 	/**
 	 * Callback AJAX para incrementar o contador de uma ocorrência.

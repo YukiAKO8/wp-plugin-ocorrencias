@@ -4,28 +4,26 @@
  *
  * @package GS_Plugin
  * @since   1.0.0
- *
- * @var stdClass $ocorrencia Os dados da ocorrência.
  */
 
-// Se este arquivo for chamado diretamente, aborte.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 ?>
 
 <div id="sna-gs-details-view">
-
 	<div class="sna-gs-details-content">
 		<div class="sna-gs-details-header">
 			<h2 class="sna-gs-details-titulo"><?php echo esc_html( $ocorrencia->titulo ); ?></h2>
-			<?php
-			// Verifica se o usuário atual pode editar a ocorrência.
-			$current_user_id = get_current_user_id();
-			$can_edit_occurrence = ( (int) $current_user_id === (int) $ocorrencia->user_id ) || current_user_can( 'manage_options' );
-			if ( $can_edit_occurrence ) : ?>
-				<a href="#" id="sna-gs-edit-occurrence-btn" class="button button-edit" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Editar Ocorrência</a>
-			<?php endif; ?>
+			<div class="sna-gs-header-actions">
+				<?php
+				$current_user_id      = get_current_user_id();
+				$can_modify_occurrence = ( (int) $current_user_id === (int) $ocorrencia->user_id ) || current_user_can( 'manage_options' );
+				if ( $can_modify_occurrence ) : ?>
+					<a href="#" id="sna-gs-edit-occurrence-btn" class="button button-edit" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Editar</a>
+					<a href="#" id="sna-gs-delete-occurrence-btn" class="button button-delete" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Excluir</a>
+				<?php endif; ?>
+			</div>
 		</div>
 
 		<div class="sna-gs-details-meta">
@@ -44,15 +42,15 @@ if ( ! defined( 'WPINC' ) ) {
 			<?php echo nl2br( esc_html( $ocorrencia->descricao ) ); ?>
 		</div>
 
-		<?php if ( ! empty( $ocorrencia->imagem_url ) ) : ?>
-			<div class="sna-gs-details-imagem">
-				<img src="<?php echo esc_url( $ocorrencia->imagem_url ); ?>" alt="Imagem da ocorrência: <?php echo esc_attr( $ocorrencia->titulo ); ?>">
+		<?php if ( ! empty( $ocorrencia->imagens ) ) : ?>
+			<div class="sna-gs-details-imagens-wrapper">
+				<h4>Imagens Anexadas:</h4>
+				<!-- A nova visualização de imagens será implementada aqui. -->
 			</div>
 		<?php endif; ?>
 
 	</div>
 </div>
-
 
 <br><br>
 
@@ -75,11 +73,12 @@ if ( ! defined( 'WPINC' ) ) {
 			<div id="sna-gs-solution-display" class="sna-gs-solution-text">
 				<?php echo nl2br( esc_html( $ocorrencia->solucao ) ); ?>
 			</div>
-			<textarea id="sna-gs-notes-textarea" placeholder="Adicione uma Solução sobre esta ocorrência..." rows="5" style="display: none;"><?php echo esc_textarea( $ocorrencia->solucao ); ?></textarea>
+			<textarea id="sna-gs-notes-textarea" placeholder="Adicione uma Solução..." rows="5" style="display: none;"><?php echo esc_textarea( $ocorrencia->solucao ); ?></textarea>
 		<?php else : ?>
-			<textarea id="sna-gs-notes-textarea" placeholder="Adicione uma Solução sobre esta ocorrência..." rows="5"><?php echo esc_textarea( $ocorrencia->solucao ); ?></textarea>
+			<textarea id="sna-gs-notes-textarea" placeholder="Adicione uma Solução..." rows="5"><?php echo esc_textarea( $ocorrencia->solucao ); ?></textarea>
 			<div id="sna-gs-solution-display" class="sna-gs-solution-text" style="display: none;"></div>
 		<?php endif; ?>
+
 		<div class="sna-gs-notes-actions">
 			<div class="sna-gs-notes-actions-right">
 				<button id="sna-gs-delete-note-btn" class="button button-delete" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>" <?php echo empty( $ocorrencia->solucao ) ? 'style="display: none;"' : ''; ?>>Excluir Solução</button>
@@ -89,5 +88,6 @@ if ( ! defined( 'WPINC' ) ) {
 		</div>
 	</div>
 </div>
+
 <br><br><br>
 <a href="#" id="sna-gs-load-list-btn" class="button button-secondary">&larr; Voltar para a Lista</a>

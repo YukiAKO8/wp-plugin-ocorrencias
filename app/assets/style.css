@@ -28,6 +28,72 @@ body.ocorrencias_page_gs-dashboard {
     }
 }
 
+/* --- Estilos para o container das imagens existentes no formulário de edição --- */
+.sna-gs-current-images-wrapper {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.sna-gs-current-images-wrapper p {
+    width: 100%;
+    margin-top: 0;
+    font-weight: bold;
+    color: #555;
+}
+
+.sna-gs-current-image-item {
+    position: relative; /* Necessário para posicionar o 'X' */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.sna-gs-current-image-item .remove-existing-image {
+    position: absolute;
+    top: 2px;
+    right: 5px;
+    background-color: rgba(0,0,0,0.5);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    line-height: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+.sna-gs-current-image-item .remove-existing-image:hover {
+    background-color: #d32f2f; /* Vermelho */
+}
+
+.sna-gs-current-image-item img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.sna-gs-current-image-item label {
+    font-size: 12px;
+    color: #d32f2f;
+    cursor: pointer;
+}
 
 /* --- Container Principal --- */
 .toplevel_page_gs-ocorrencias .wrap,
@@ -429,6 +495,12 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
 	align-items: center;
 	margin-bottom: 10px;
 }
+.sna-gs-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.sna-gs-details-header .button-edit { padding: 8px 20px !important; }
 
 .sna-gs-details-titulo {
     font-size: 24px;
@@ -453,18 +525,6 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     font-size: 16px;
     line-height: 1.7;
     color: #3c4043;
-}
-
-.sna-gs-details-imagem {
-    margin-top: 25px;
-    text-align: center;
-}
-
-.sna-gs-details-imagem img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-    border: 1px solid #dcdcde;
 }
 
 .sna-container-solução {
@@ -573,8 +633,6 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     justify-content: center;
     margin-bottom: 15px; /* Espaço abaixo do botão */
 }
-.sna-gs-details-header .button-edit { padding: 8px 20px !important; }
-
 .button-edit:hover {
     background: #fff9c4 !important; /* Amarelo um pouco mais escuro no hover */
     border-color: #ffee58 !important;
