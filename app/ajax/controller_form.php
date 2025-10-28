@@ -33,7 +33,10 @@ class GS_Ajax_Controller {
 				if ( $ocorrencia_id ) {
 					// Padroniza a consulta para ser igual à do 'case details', garantindo consistência.
 					$ocorrencia = $wpdb->get_row( $wpdb->prepare(
-						"SELECT o.*, u.display_name FROM {$table_ocorrencias} o LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID WHERE o.id = %d",
+						"SELECT o.*, u.display_name, us.display_name as solucionado_por_name 
+						 FROM {$table_ocorrencias} o 
+						 LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID 
+						 LEFT JOIN {$wpdb->users} us ON o.solucionado_por = us.ID WHERE o.id = %d",
 						$ocorrencia_id
 					) );
 					// Check permission before loading form for editing
@@ -48,17 +51,13 @@ class GS_Ajax_Controller {
 						// Agora, busca as imagens, pois o usuário tem permissão.
 						$imagens_db = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table_imagens} WHERE ocorrencia_id = %d", $ocorrencia_id ) );
 						$ocorrencia->imagens = array();
-						if ( ! empty( $imagens_db ) && function_exists( 'getMultipleFilesWPDrive' ) ) {
-							$drive_ids = array();
+						if ( ! empty( $imagens_db ) && function_exists( 'getFilesWPDrive' ) ) {
 							foreach ( $imagens_db as $img_db ) {
 								if ( ! empty( $img_db->imagem_id_drive ) ) {
-									$drive_ids[] = $img_db->imagem_id_drive;
-								}
-							}
-							$display_urls = getMultipleFilesWPDrive( $drive_ids );
-							foreach ( $imagens_db as $img_db ) {
-								if ( isset( $display_urls[ $img_db->imagem_id_drive ] ) ) {
-									$img_db->display_url = $display_urls[ $img_db->imagem_id_drive ];
+									$display_url = getFilesWPDrive( $img_db->imagem_id_drive );
+									if ( ! is_wp_error( $display_url ) && ! empty( $display_url ) ) {
+										$img_db->display_url = $display_url;
+									}
 									$ocorrencia->imagens[] = $img_db;
 								}
 							}
@@ -124,22 +123,15 @@ class GS_Ajax_Controller {
 						$ocorrencia->imagens = array();
 
 						// Otimização: Busca todas as URLs de imagem em uma única requisição em lote.
-						if ( ! empty( $imagens_db ) && function_exists( 'getMultipleFilesWPDrive' ) ) {
-							// 1. Coleta todos os IDs de imagem do Drive.
-							$drive_ids = array();
+						if ( ! empty( $imagens_db ) && function_exists( 'getFilesWPDrive' ) ) {
 							foreach ( $imagens_db as $img_db ) {
 								if ( ! empty( $img_db->imagem_id_drive ) ) {
-									$drive_ids[] = $img_db->imagem_id_drive;
-								}
-							}
-
-							// 2. Busca todas as URLs de uma vez.
-							$display_urls = getMultipleFilesWPDrive( $drive_ids );
-
-							// 3. Associa as URLs de volta aos objetos de imagem.
-							foreach ( $imagens_db as $img_db ) {
-								if ( isset( $display_urls[ $img_db->imagem_id_drive ] ) ) {
-									$img_db->display_url = $display_urls[ $img_db->imagem_id_drive ];
+									$display_url = getFilesWPDrive( $img_db->imagem_id_drive );
+									if ( ! is_wp_error( $display_url ) && ! empty( $display_url ) ) {
+										$img_db->display_url = $display_url;
+									} else {
+										$img_db->display_url = ''; // Garante que a propriedade exista, mesmo que vazia.
+									}
 									$ocorrencia->imagens[] = $img_db;
 								}
 							}
@@ -152,6 +144,43 @@ class GS_Ajax_Controller {
 					echo '<p>ID da ocorrência não fornecido.</p>';
 				}
 				break;
+			case 'count_images':
+				$ocorrencia_id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+				if ( $ocorrencia_id ) {
+					$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_imagens} WHERE ocorrencia_id = %d", $ocorrencia_id ) );
+					echo esc_html( $count );
+				} else {
+					echo '0';
+				}
+				break;
+			case 'get_images':
+				$ocorrencia_id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+				if ( ! $ocorrencia_id ) {
+					echo '<p>Erro: ID da ocorrência ausente.</p>';
+					wp_die();
+				}
+
+				$imagens_db = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table_imagens} WHERE ocorrencia_id = %d", $ocorrencia_id ) );
+
+				if ( empty( $imagens_db ) ) {
+					echo '<p>Nenhuma imagem encontrada para esta ocorrência.</p>';
+					wp_die();
+				}
+
+				if ( function_exists( 'getFilesWPDrive' ) ) {
+					echo '<div class="sna-gs-image-gallery">';
+					foreach ( $imagens_db as $img_db ) {
+						if ( ! empty( $img_db->imagem_id_drive ) ) {
+							$display_url = getFilesWPDrive( $img_db->imagem_id_drive );
+							echo '<div class="sna-gs-gallery-item">';
+							echo '<img src="' . esc_url( $display_url ) . '" alt="Imagem da ocorrência" class="sna-gs-gallery-thumbnail">';
+							echo '</div>';
+						}
+					}
+					echo '</div>';
+					wp_die(); // Encerra a execução aqui, após enviar o HTML da galeria.
+				}
+				break; // Adicionado para evitar "fall-through" para o default.
 			default:
 				echo '<p>View não encontrada.</p>';
 				break;

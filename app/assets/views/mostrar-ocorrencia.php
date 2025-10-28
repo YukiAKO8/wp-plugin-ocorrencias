@@ -42,12 +42,11 @@ if ( ! defined( 'WPINC' ) ) {
 			<?php echo nl2br( esc_html( $ocorrencia->descricao ) ); ?>
 		</div>
 
-		<?php if ( ! empty( $ocorrencia->imagens ) ) : ?>
-			<div class="sna-gs-details-imagens-wrapper">
-				<h4>Imagens Anexadas:</h4>
-				<!-- A nova visualização de imagens será implementada aqui. -->
-			</div>
-		<?php endif; ?>
+		<div class="sna-gs-details-imagens-wrapper">
+			<!-- O botão será inserido aqui pelo JS se houver imagens -->
+			<button id="sna-gs-view-images-btn" class="button button-secondary" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>" style="display: none;">Visualizar Imagens Anexadas</button>
+			<div id="sna-gs-image-gallery-container" style="display: none; margin-top: 15px;"></div>
+		</div>
 
 	</div>
 </div>

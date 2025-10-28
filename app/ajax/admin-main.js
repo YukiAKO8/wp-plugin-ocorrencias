@@ -19,6 +19,10 @@ jQuery(document).ready(function ($) {
             data: ajaxData,
             success: function (response) {
                 container.html(response);
+                // Se a view carregada for a de detalhes, chama a verificação do botão de imagens.
+                if (viewName === 'details') {
+                    checkAndShowImagesButton();
+                }
             },
             error: function () {
                 container.html('<p>Ocorreu um erro ao carregar o conteúdo.</p>');
@@ -582,5 +586,81 @@ jQuery(document).ready(function ($) {
             }
         });
     });
+
+    // Lightbox para visualização de imagens na tela de detalhes
+    container.on('click', '.sna-gs-gallery-thumbnail', function() {
+        const imgSrc = $(this).attr('src');
+
+        const lightboxHTML = `
+            <div class="sna-gs-lightbox-overlay">
+                <div class="sna-gs-lightbox-content">
+                    <span class="sna-gs-lightbox-close">&times;</span>
+                    <img src="${imgSrc}" class="sna-gs-lightbox-image" alt="Imagem ampliada">
+                </div>
+            </div>
+        `;
+
+        const $lightbox = $(lightboxHTML);
+
+        $('body').append($lightbox);
+
+        // Fecha o lightbox ao clicar no 'X' ou no fundo
+        $lightbox.on('click', function(e) {
+            if ($(e.target).is('.sna-gs-lightbox-overlay, .sna-gs-lightbox-close')) {
+                $lightbox.remove();
+            }
+        });
+    });
+
+    // Manipulador para o botão "Visualizar Imagens Anexadas"
+    container.on('click', '#sna-gs-view-images-btn', function(e) {
+        e.preventDefault();
+        const button = $(this);
+        const ocorrenciaId = button.data('id');
+        const galleryContainer = $('#sna-gs-image-gallery-container');
+
+        // Se a galeria já estiver visível, esconde e para.
+        if (galleryContainer.is(':visible')) {
+            galleryContainer.slideUp();
+            return;
+        }
+
+        galleryContainer.html('<p>Carregando imagens...</p>').slideDown();
+
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'gs_load_view',
+                view: 'get_images',
+                nonce: gs_ajax_object.nonce,
+                id: ocorrenciaId
+            },
+            success: function(response) {
+                galleryContainer.html(response);
+            },
+            error: function() {
+                galleryContainer.html('<p>Erro ao carregar as imagens.</p>');
+            }
+        });
+    });
+
+    // Função para verificar se há imagens e mostrar o botão
+    function checkAndShowImagesButton() {
+        const viewImagesBtn = $('#sna-gs-view-images-btn');
+        if (viewImagesBtn.length) {
+            const ocorrenciaId = viewImagesBtn.data('id');
+            $.ajax({
+                url: ajaxurl, type: 'POST',
+                data: { action: 'gs_load_view', view: 'count_images', nonce: gs_ajax_object.nonce, id: ocorrenciaId },
+                success: function(response) {
+                    const count = parseInt(response, 10);
+                    if (count > 0) {
+                        viewImagesBtn.text(`Visualizar Imagens Anexadas (${count})`).show();
+                    }
+                }
+            });
+        }
+    }
 
 });
