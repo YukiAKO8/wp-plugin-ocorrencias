@@ -92,6 +92,13 @@ body.ocorrencias_page_gs-dashboard {
     border-top: 1px solid #e0e0e0;
 }
 
+.sna-gs-details-actions-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
 .sna-gs-image-gallery {
     display: flex;
     flex-wrap: wrap;

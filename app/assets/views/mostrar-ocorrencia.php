@@ -15,15 +15,6 @@ if ( ! defined( 'WPINC' ) ) {
 	<div class="sna-gs-details-content">
 		<div class="sna-gs-details-header">
 			<h2 class="sna-gs-details-titulo"><?php echo esc_html( $ocorrencia->titulo ); ?></h2>
-			<div class="sna-gs-header-actions">
-				<?php
-				$current_user_id      = get_current_user_id();
-				$can_modify_occurrence = ( (int) $current_user_id === (int) $ocorrencia->user_id ) || current_user_can( 'manage_options' );
-				if ( $can_modify_occurrence ) : ?>
-					<a href="#" id="sna-gs-edit-occurrence-btn" class="button button-edit" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Editar</a>
-					<a href="#" id="sna-gs-delete-occurrence-btn" class="button button-delete" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Excluir</a>
-				<?php endif; ?>
-			</div>
 		</div>
 
 		<div class="sna-gs-details-meta">
@@ -39,12 +30,22 @@ if ( ! defined( 'WPINC' ) ) {
 		</div>
 
 		<div class="sna-gs-details-descricao">
-			<?php echo nl2br( esc_html( $ocorrencia->descricao ) ); ?>
+			<p><?php echo nl2br( esc_html( $ocorrencia->descricao ) ); ?></p>
 		</div>
 
 		<div class="sna-gs-details-imagens-wrapper">
-			<!-- O botão será inserido aqui pelo JS se houver imagens -->
-			<button id="sna-gs-view-images-btn" class="button button-secondary" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>" style="display: none;">Visualizar Imagens Anexadas</button>
+			<div class="sna-gs-details-actions-container">
+				<button id="sna-gs-view-images-btn" class="button button-secondary" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>" style="display: none;">Visualizar Imagens Anexadas</button>
+				<div class="sna-gs-header-actions">
+					<?php
+					$current_user_id      = get_current_user_id();
+					$can_modify_occurrence = ( (int) $current_user_id === (int) $ocorrencia->user_id ) || current_user_can( 'manage_options' );
+					if ( $can_modify_occurrence ) : ?>
+						<a href="#" id="sna-gs-edit-occurrence-btn" class="button button-edit" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Editar</a>
+						<a href="#" id="sna-gs-delete-occurrence-btn" class="button button-delete" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Excluir</a>
+					<?php endif; ?>
+				</div>
+			</div>
 			<div id="sna-gs-image-gallery-container" style="display: none; margin-top: 15px;"></div>
 		</div>
 
