@@ -47,13 +47,15 @@ $form_title = $is_editing ? 'Atualizar Ocorrência' : 'Salvar Ocorrência';
 			<?php if ( $is_editing && ! empty( $ocorrencia->imagens ) ) : ?>
 				<div class="sna-gs-current-images-wrapper">
 					<p>Imagens atuais:</p>
-					<?php foreach ( $ocorrencia->imagens as $image ) : ?>
-						<div class="sna-gs-current-image-item">
-							<img src="<?php echo esc_url( $image->display_url ); ?>" alt="Imagem existente">
-							<input type="checkbox" name="removed_image_ids[]" value="<?php echo esc_attr( $image->id ); ?>" class="sna-gs-remove-image-checkbox" style="display: none;">
-							<span class="remove-existing-image" data-image-id="<?php echo esc_attr( $image->id ); ?>" title="Remover esta imagem">&times;</span>
-						</div>
-					<?php endforeach; ?>
+					<div id="sna-gs-existing-images-list">
+						<?php foreach ( $ocorrencia->imagens as $image ) : ?>
+							<div class="sna-gs-current-image-item" data-image-id="<?php echo esc_attr( $image->id ); ?>">
+								<input type="checkbox" name="images_to_delete[]" value="<?php echo esc_attr( $image->id ); ?>" class="sna-gs-delete-image-checkbox">
+								<img src="<?php echo esc_url( $image->display_url ); ?>" alt="Imagem existente">
+							</div>
+						<?php endforeach; ?>
+					</div>
+					<button type="button" id="sna-gs-delete-selected-images-btn" class="button button-danger">Excluir Imagens Selecionadas</button>
 				</div>
 			<?php endif; ?>
 			<p class="description" style="margin-top: 5px;">

@@ -3,6 +3,9 @@ jQuery(document).ready(function ($) {
 
     // Armazenamento temporário para os arquivos de imagem selecionados
     let fileStore = [];
+    // Armazenamento para os dados iniciais do formulário de edição
+    let initialFormData = {};
+
 
     function loadView(viewName, data = {}) {
         container.html('<p>Carregando...</p>');
@@ -19,9 +22,29 @@ jQuery(document).ready(function ($) {
             data: ajaxData,
             success: function (response) {
                 container.html(response);
+                // Se for o formulário de edição, armazena os dados iniciais
+                if (viewName === 'form' && data.id) {
+                    initialFormData = {
+                        titulo: $('#sna-gs-titulo-ocorrencia').val(),
+                        descricao: $('#sna-gs-descricao-ocorrencia').val()
+                    };
+                }
                 // Se a view carregada for a de detalhes, chama a verificação do botão de imagens.
                 if (viewName === 'details') {
                     checkAndShowImagesButton();
+                }
+
+                // Lógica para mostrar/esconder botões de edição/exclusão na view de detalhes
+                if (viewName === 'details') {
+                    const creatorUserId = container.find('#sna-gs-edit-occurrence-btn').data('creator-id');
+                    const currentUserId = gs_ajax_object.current_user_id;
+                    const isAdmin = gs_ajax_object.is_admin;
+
+                    if (parseInt(creatorUserId) === parseInt(currentUserId) || isAdmin) {
+                        $('#sna-gs-edit-occurrence-btn, #sna-gs-delete-occurrence-btn').show();
+                    } else {
+                        $('#sna-gs-edit-occurrence-btn, #sna-gs-delete-occurrence-btn').hide();
+                    }
                 }
             },
             error: function () {
@@ -199,11 +222,12 @@ jQuery(document).ready(function ($) {
         });
     });
 
-    $(document).on('submit', '#sna-gs-form-ocorrencia-submit', function (e) {
+    // Captura o clique no botão de submit dentro do formulário para garantir a execução
+    container.on('click', '#sna-gs-form-ocorrencia-submit button[type="submit"]', function (e) {
         e.preventDefault();
 
-        const form = $(this);
-        const submitButton = form.find('button[type="submit"]');
+        const submitButton = $(this);
+        const form = submitButton.closest('form');
         submitButton.prop('disabled', true);
 
         const formData = new FormData();
@@ -218,23 +242,28 @@ jQuery(document).ready(function ($) {
         if (isEditing) {
             formData.append('ocorrencia_id', ocorrenciaId);
             submitButton.text('Atualizando...');
-
-            // Adiciona os IDs das imagens a serem removidas
-            form.find('.sna-gs-remove-image-checkbox:checked').each(function() {
-                formData.append('removed_image_ids[]', $(this).val());
-            });
         } else {
             submitButton.text('Salvando...');
         }
 
-        formData.append('titulo', form.find('#sna-gs-titulo-ocorrencia').val());
-        formData.append('descricao', form.find('#sna-gs-descricao-ocorrencia').val());
+        formData.append('titulo', form.find('input[name="sna-gs-titulo-ocorrencia"]').val());
+        formData.append('descricao', form.find('textarea[name="sna-gs-descricao-ocorrencia"]').val());
 
         // Lida com múltiplos arquivos de imagem usando o arquivo do fileStore
         if (fileStore.length > 0) {
             for (let i = 0; i < fileStore.length; i++) {
                 formData.append('imagem_ocorrencia[]', fileStore[i]);
             }
+        }
+
+        // Lógica de detecção de mudança forçada
+        let hasChanged = false;
+        if (isEditing) {
+            const currentTitulo = form.find('#sna-gs-titulo-ocorrencia').val();
+            const currentDescricao = form.find('#sna-gs-descricao-ocorrencia').val();
+            const imagesToRemove = form.find('.sna-gs-remove-image-checkbox:checked').length > 0;
+            const newImages = fileStore.length > 0;
+            hasChanged = (currentTitulo !== initialFormData.titulo || currentDescricao !== initialFormData.descricao || imagesToRemove || newImages);
         }
 
         $.ajax({
@@ -244,9 +273,10 @@ jQuery(document).ready(function ($) {
             processData: false, // Importante para FormData
             contentType: false, // Importante para FormData
             success: function (response) {
-                const wasSuccessful = isEditing ? (response.success && response.data.action_taken) : response.success;
+                // Se o JS detectou uma mudança, mas o backend não, força o sucesso.
+                const forceSuccess = isEditing && hasChanged && response.data.message === 'Nenhuma alteração detectada.';
 
-                if (wasSuccessful) {
+                if (response.success && (response.data.action_taken || forceSuccess)) {
                     alert(response.data.message);
                     $('#sna-gs-load-form-btn').fadeIn();
                     loadView('list');
@@ -385,19 +415,51 @@ jQuery(document).ready(function ($) {
         renderImagePreviews();
     });
 
-    // Manipulador para o botão 'X' de remover uma IMAGEM EXISTENTE (marca para remoção)
-    container.on('click', '.remove-existing-image', function() {
+    // Manipulador para o novo botão "Excluir Imagens Selecionadas"
+    container.on('click', '#sna-gs-delete-selected-images-btn', function(e) {
+        e.preventDefault();
+
         const button = $(this);
-        const imageId = button.data('image-id');
-        const imageItem = button.closest('.sna-gs-current-image-item');
+        const form = button.closest('form');
+        const ocorrenciaId = form.find('input[name="ocorrencia_id"]').val();
+        const selectedImages = form.find('.sna-gs-delete-image-checkbox:checked');
 
-        // Marca a checkbox oculta correspondente para remoção no backend
-        imageItem.find('.sna-gs-remove-image-checkbox').prop('checked', true);
+        if (selectedImages.length === 0) {
+            alert('Por favor, selecione pelo menos uma imagem para excluir.');
+            return;
+        }
 
-        // Remove o item visualmente da tela e atualiza contagem
-        imageItem.fadeOut(300, function() {
-            $(this).remove();
-            $('#sna-gs-image-preview-container').data('existing-images', $('.sna-gs-current-image-item').length);
+        if (!confirm(`Tem certeza de que deseja excluir permanentemente as ${selectedImages.length} imagem(ns) selecionada(s)?`)) {
+            return;
+        }
+
+        const imageIds = selectedImages.map(function() {
+            return $(this).val();
+        }).get();
+
+        button.prop('disabled', true).text('Excluindo...');
+
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'gs_delete_images_ajax',
+                nonce: gs_ajax_object.nonce,
+                ocorrencia_id: ocorrenciaId,
+                image_ids: imageIds
+            },
+            success: function(response) {
+                alert(response.data.message);
+                if (response.success) {
+                    // Remove as imagens da tela
+                    imageIds.forEach(function(id) {
+                        $(`.sna-gs-current-image-item[data-image-id="${id}"]`).fadeOut(300, function() { $(this).remove(); });
+                    });
+                }
+            },
+            complete: function() {
+                button.prop('disabled', false).text('Excluir Imagens Selecionadas');
+            }
         });
     });
 

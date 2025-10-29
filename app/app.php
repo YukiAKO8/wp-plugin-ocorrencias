@@ -42,6 +42,8 @@ class GS_Plugin_App {
 		add_action( 'wp_ajax_gs_save_solution', array( $this, 'ajax_save_solution' ) );
 		add_action( 'wp_ajax_gs_delete_solution', array( $this, 'ajax_delete_solution' ) );
 		add_action( 'wp_ajax_gs_delete_ocorrencia', array( $this, 'ajax_delete_ocorrencia' ) );
+		// Adicionado o hook para a nova função AJAX de exclusão de imagens
+		add_action( 'wp_ajax_gs_delete_images_ajax', array( $this, 'ajax_delete_images' ) );
 	}
 
 	public function handle_form_submission() {
@@ -96,7 +98,8 @@ class GS_Plugin_App {
 					);
 					if ( function_exists( 'uploadFilesWPDrive' ) ) {
 						$drive_file_response = uploadFilesWPDrive( $file_data, $file_data['name'], 'gestao_ocorrencias' );
-						if ( isset( $drive_file_response['resposta']['id'] ) ) {
+						// VERIFICAÇÃO ROBUSTA: Garante que o upload foi bem-sucedido e que um ID foi retornado.
+						if ( isset( $drive_file_response['error'] ) && 0 === $drive_file_response['error'] && ! empty( $drive_file_response['resposta']['id'] ) ) {
 							$wpdb->insert(
 								$table_imagens,
 								array(
@@ -105,6 +108,8 @@ class GS_Plugin_App {
 									'imagem_id_drive' => $drive_file_response['resposta']['id'],
 								)
 							);
+						} else {
+							error_log( 'GS Plugin - Falha no upload para o Drive: ' . print_r( $drive_file_response, true ) );
 						}
 					}
 				}
@@ -148,32 +153,8 @@ class GS_Plugin_App {
 		$titulo    = sanitize_text_field( wp_unslash( $_POST['titulo'] ) );
 		$descricao = sanitize_textarea_field( wp_unslash( $_POST['descricao'] ) );
 
-		// Lógica para gerenciar imagens na atualização
+		// A lógica de remoção de imagens foi movida para uma chamada AJAX separada (ajax_delete_images)
 		$images_removed_count = 0;
-		error_log( 'GS_Plugin_App::handle_update_submission - Ocorrência ID: ' . $ocorrencia_id );
-		// Lida com a remoção de imagens existentes
-		if ( isset( $_POST['removed_image_ids'] ) && is_array( $_POST['removed_image_ids'] ) ) {
-			error_log( 'GS_Plugin_App::handle_update_submission - IDs de imagens a serem removidas: ' . implode( ', ', $_POST['removed_image_ids'] ) );
-			foreach ( $_POST['removed_image_ids'] as $image_db_id ) {
-				$image_db_id = absint( $image_db_id );
-				error_log( 'GS_Plugin_App::handle_update_submission - Tentando remover imagem_db_id: ' . $image_db_id );
-				$image_data = $wpdb->get_row( $wpdb->prepare( "SELECT imagem_id_drive FROM {$table_imagens} WHERE id = %d AND ocorrencia_id = %d", $image_db_id, $ocorrencia_id ) );
-				// Garante que a imagem foi encontrada e que o ID do Drive não está vazio antes de tentar deletar.
-				if ( $image_data && ! empty( $image_data->imagem_id_drive ) && function_exists( 'deleteFileWPDrive' ) ) {
-					error_log( 'GS_Plugin_App::handle_update_submission - Chamando deleteFileWPDrive para ID do Drive: ' . $image_data->imagem_id_drive );
-					$delete_drive_result = deleteFileWPDrive( $image_data->imagem_id_drive );
-					error_log( 'GS_Plugin_App::handle_update_submission - Resultado deleteFileWPDrive: ' . print_r( $delete_drive_result, true ) );
-				}
-
-				$delete_db_result = $wpdb->delete( $table_imagens, array( 'id' => $image_db_id, 'ocorrencia_id' => $ocorrencia_id ) );
-				error_log( 'GS_Plugin_App::handle_update_submission - Resultado wpdb->delete para imagem_db_id ' . $image_db_id . ': ' . $delete_db_result );
-				if ( false !== $delete_db_result && $delete_db_result > 0 ) { // Verifica se a exclusão foi bem-sucedida
-					$images_removed_count++;
-				} elseif ( false === $delete_db_result ) {
-					error_log( 'GS_Plugin_App::handle_update_submission - wpdb->delete falhou para imagem_db_id ' . $image_db_id . '. Erro: ' . $wpdb->last_error );
-				}
-			}
-		}
 
 		// Lida com o upload de novas imagens
 		$new_images_added = false;
@@ -193,7 +174,8 @@ class GS_Plugin_App {
 					);
 					if ( function_exists( 'uploadFilesWPDrive' ) ) {
 						$drive_file_response = uploadFilesWPDrive( $file_data, $file_data['name'], 'gestao_ocorrencias' );
-						if ( isset( $drive_file_response['resposta']['id'] ) ) {
+						// VERIFICAÇÃO ROBUSTA: Garante que o upload foi bem-sucedido e que um ID foi retornado.
+						if ( isset( $drive_file_response['error'] ) && 0 === $drive_file_response['error'] && ! empty( $drive_file_response['resposta']['id'] ) ) {
 							$wpdb->insert(
 								$table_imagens,
 								array(
@@ -203,6 +185,8 @@ class GS_Plugin_App {
 								)
 							);
 							$new_images_added = true;
+						} else {
+							error_log( 'GS Plugin - Falha no upload para o Drive (update): ' . print_r( $drive_file_response, true ) );
 						}
 					}
 				}
@@ -212,11 +196,12 @@ class GS_Plugin_App {
 		$result = $wpdb->update(
 			$table_ocorrencias,
 			array(
-				'titulo'    => $titulo,
-				'descricao' => $descricao,
+				'titulo'             => $titulo,
+				'descricao'          => $descricao,
+				'data_ultima_edicao' => current_time( 'mysql' ), // Sempre atualiza a data de modificação
 			),
 			array( 'id' => $ocorrencia_id ),
-			array( '%s', '%s' ),
+			array( '%s', '%s', '%s' ),
 			array( '%d' )
 		);
 
@@ -238,7 +223,92 @@ class GS_Plugin_App {
 		}
 
 		$final_message = ! empty( $messages ) ? implode( ' ', $messages ) : 'Nenhuma alteração detectada.';
-		wp_send_json_success( array( 'message' => $final_message, 'action_taken' => ! empty( $messages ) ) );
+		// Ação é considerada válida se houver alteração no texto, remoção ou adição de imagens.
+		$action_taken = ( $result > 0 || $images_removed_count > 0 || $new_images_added );
+
+		// Envia a resposta JSON.
+		wp_send_json_success( array( 'message' => $final_message, 'action_taken' => $action_taken ) );
+	}
+
+	/**
+	 * Função auxiliar para deletar uma imagem do Drive e do Banco de Dados.
+	 *
+	 * @param int $image_db_id ID da imagem na tabela gs_imagens_ocorrencias.
+	 * @param int $ocorrencia_id ID da ocorrência para verificação de propriedade.
+	 * @return bool True em sucesso, False em falha.
+	 */
+	private function _delete_image_by_id( $image_db_id, $ocorrencia_id ) {
+		global $wpdb;
+		$table_imagens = $wpdb->prefix . 'gs_imagens_ocorrencias';
+
+		$image_data = $wpdb->get_row( $wpdb->prepare( "SELECT imagem_id_drive FROM {$table_imagens} WHERE id = %d AND ocorrencia_id = %d", $image_db_id, $ocorrencia_id ) );
+
+		// Se a imagem não existe ou não pertence à ocorrência, considera como "sucesso" para não travar o processo.
+		if ( ! $image_data ) {
+			return true;
+		}
+
+		// Se tem um ID do Drive, tenta deletar de lá primeiro.
+		if ( ! empty( $image_data->imagem_id_drive ) && function_exists( 'deleteFileWPDrive' ) ) {
+			$delete_drive_result = deleteFileWPDrive( $image_data->imagem_id_drive );
+
+			// Se a exclusão no Drive falhar, não remove do banco e retorna erro.
+			if ( ! isset( $delete_drive_result['error'] ) || 0 !== $delete_drive_result['error'] ) {
+				error_log( 'GS Plugin - FALHA ao deletar do Drive. Imagem DB ID ' . $image_db_id . ' não será removida do banco.' );
+				return false;
+			}
+		}
+
+		// Se chegou aqui, ou deletou do Drive com sucesso, ou não tinha ID do Drive. Deleta do banco.
+		$delete_db_result = $wpdb->delete( $table_imagens, array( 'id' => $image_db_id ) );
+
+		return false !== $delete_db_result;
+	}
+
+	/**
+	 * Callback AJAX para excluir imagens selecionadas de uma ocorrência.
+	 *
+	 * @since 1.0.0
+	 */
+	public function ajax_delete_images() {
+		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
+
+		if ( ! isset( $_POST['ocorrencia_id'], $_POST['image_ids'] ) || ! is_array( $_POST['image_ids'] ) ) {
+			wp_send_json_error( array( 'message' => 'Dados inválidos para exclusão.' ) );
+		}
+
+		$ocorrencia_id = absint( $_POST['ocorrencia_id'] );
+		$image_ids     = array_map( 'absint', $_POST['image_ids'] );
+
+		// --- VERIFICAÇÃO DE PERMISSÃO PARA EXCLUIR IMAGENS ---
+		global $wpdb;
+		$table_ocorrencias = $wpdb->prefix . 'gs_ocorrencias';
+		$ocorrencia_creator_id = $wpdb->get_var( $wpdb->prepare( "SELECT user_id FROM {$table_ocorrencias} WHERE id = %d", $ocorrencia_id ) );
+		$current_user_id       = get_current_user_id();
+		$can_delete_images     = ( (int) $current_user_id === (int) $ocorrencia_creator_id ) || current_user_can( 'manage_options' );
+
+		if ( ! $can_delete_images ) {
+			wp_send_json_error( array( 'message' => 'Você não tem permissão para excluir imagens desta ocorrência.' ) );
+		}
+		// --- FIM DA VERIFICAÇÃO DE PERMISSÃO ---
+
+
+		$deleted_count = 0;
+		$failed_count  = 0;
+
+		foreach ( $image_ids as $image_id ) {
+			if ( $this->_delete_image_by_id( $image_id, $ocorrencia_id ) ) {
+				$deleted_count++;
+			} else {
+				$failed_count++;
+			}
+		}
+
+		if ( $failed_count > 0 ) {
+			wp_send_json_error( array( 'message' => "Falha ao excluir {$failed_count} imagem(ns). {$deleted_count} foram removidas com sucesso." ) );
+		}
+
+		wp_send_json_success( array( 'message' => "{$deleted_count} imagem(ns) excluída(s) com sucesso!" ) );
 	}
 
 	/**
@@ -272,12 +342,10 @@ class GS_Plugin_App {
 		}
 
 		// 1. Excluir imagens do Google Drive.
-		$imagens_a_deletar = $wpdb->get_results( $wpdb->prepare( "SELECT imagem_id_drive FROM {$table_imagens} WHERE ocorrencia_id = %d", $ocorrencia_id ) );
+		$imagens_a_deletar = $wpdb->get_results( $wpdb->prepare( "SELECT id, imagem_id_drive FROM {$table_imagens} WHERE ocorrencia_id = %d", $ocorrencia_id ) );
 		if ( ! empty( $imagens_a_deletar ) && function_exists( 'deleteFileWPDrive' ) ) {
 			foreach ( $imagens_a_deletar as $imagem ) {
-				if ( ! empty( $imagem->imagem_id_drive ) ) {
-					deleteFileWPDrive( $imagem->imagem_id_drive );
-				}
+				$this->_delete_image_by_id( $imagem->id, $ocorrencia_id );
 			}
 		}
 
@@ -644,8 +712,12 @@ class GS_Plugin_App {
 		$script_version = filemtime( GS_PLUGIN_PATH . 'app/ajax/admin-main.js' );
 		wp_enqueue_style( 'gs-admin-styles', GS_PLUGIN_URL . 'app/assets/style.css', array(), $style_version );
 		wp_enqueue_script( 'gs-admin-main', GS_PLUGIN_URL . 'app/ajax/admin-main.js', array( 'jquery' ), $script_version, true );
-		// Passa dados do PHP para o JavaScript (como o nonce de segurança).
-		wp_localize_script( 'gs-admin-main', 'gs_ajax_object', array( 'nonce' => wp_create_nonce( 'gs_ajax_nonce' ) ) );
+		// Passa dados do PHP para o JavaScript (como o nonce de segurança, ID do usuário atual e status de admin).
+		wp_localize_script( 'gs-admin-main', 'gs_ajax_object', array(
+			'nonce'           => wp_create_nonce( 'gs_ajax_nonce' ),
+			'current_user_id' => get_current_user_id(),
+			'is_admin'        => current_user_can( 'manage_options' ),
+		) );
 	}
 
 	/**
