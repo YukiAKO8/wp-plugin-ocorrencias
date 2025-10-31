@@ -20,6 +20,7 @@ if ( ! defined( 'WPINC' ) ) {
 		<input type="search" id="sna-gs-search-input" placeholder="Buscar ocorrências..." value="<?php echo esc_attr( $search_term ?? '' ); ?>">
 		<button id="sna-gs-search-submit" class="button page-title-action">Buscar</button>
 		<button id="sna-gs-search-clear" class="button button-clear">Limpar</button>
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=gs-processos' ) ); ?>" class="button button-success">Processos</a>
 	</div>
 
 	<?php if ( ! empty( $ocorrencias ) ) : ?>

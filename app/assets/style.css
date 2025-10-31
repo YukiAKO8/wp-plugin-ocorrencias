@@ -990,3 +990,121 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     height: 400px; /* Define uma altura fixa para ambos os contêineres */
     position: relative; /* Necessário para o canvas se ajustar corretamente */
 }
+
+/* --- Novo Estilo para Botão Verde (Sucesso/Navegação) --- */
+.button-success {
+    background: #e8f5e9 !important; /* Fundo verde claro */
+    border: 1px solid #a5d6a7 !important; /* Borda verde */
+    color: #2e7d32 !important; /* Texto verde escuro */
+    padding: 8px 20px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    border-radius: 30px !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    box-shadow: none !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+}
+
+.button-success:hover {
+    background: #c8e6c9 !important; /* Verde um pouco mais escuro no hover */
+    border-color: #81c784 !important;
+    color: #1b5e20 !important;
+    box-shadow: 0 0 12px rgba(165, 214, 167, 0.6) !important; /* Efeito de iluminação verde */
+}
+
+/* --- Estilos para o Interruptor Ocorrência/Processo --- */
+.sna-gs-type-switch-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.sna-gs-type-switch {
+    position: relative;
+    display: inline-block;
+    width: 220px;
+    height: 40px;
+}
+
+.sna-gs-type-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.sna-gs-switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e3f2fd; /* Azul claro (Ocorrência) */
+    border: 1px solid #90caf9;
+    transition: .4s;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    font-weight: 600;
+}
+
+.sna-gs-switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 32px;
+    width: 106px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 32px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.sna-gs-type-switch input:checked + .sna-gs-switch-slider {
+    background-color: #e8f5e9; /* Verde claro (Processo) */
+    border-color: #a5d6a7;
+}
+
+.sna-gs-type-switch input:checked + .sna-gs-switch-slider:before {
+    transform: translateX(106px);
+}
+
+.sna-gs-switch-label-on { color: #2e7d32; }
+.sna-gs-switch-label-off { color: #1976d2; }
+
+/* Z-index para garantir que os labels fiquem acima do slider branco */
+.sna-gs-switch-label-on, .sna-gs-switch-label-off { z-index: 1; }
+
+/* --- Estilos Dinâmicos para o Formulário de Processo --- */
+
+/* Altera o botão de Salvar para verde */
+#sna-gs-form-ocorrencia-submit.is-processo .button-primary {
+    background: #e8f5e9 !important; /* Fundo verde claro */
+    border-color: #a5d6a7 !important; /* Borda verde */
+    color: #2e7d32 !important; /* Texto verde escuro */
+}
+
+#sna-gs-form-ocorrencia-submit.is-processo .button-primary:hover {
+    background: #c8e6c9 !important; /* Verde um pouco mais escuro no hover */
+    border-color: #81c784 !important;
+    color: #1b5e20 !important;
+    box-shadow: 0 0 12px rgba(165, 214, 167, 0.6) !important; /* Efeito de iluminação verde */
+}
+
+/* Altera o botão de "+ Novo Anexo" para verde */
+#sna-gs-form-ocorrencia-submit.is-processo .button-file-upload {
+    background: #e8f5e9 !important;
+    border-color: #a5d6a7 !important;
+    color: #2e7d32 !important;
+}
+
+#sna-gs-form-ocorrencia-submit.is-processo .button-file-upload:hover {
+    background: #c8e6c9 !important;
+    border-color: #81c784 !important;
+    color: #1b5e20 !important;
+    box-shadow: 0 0 12px rgba(165, 214, 167, 0.6) !important;
+}

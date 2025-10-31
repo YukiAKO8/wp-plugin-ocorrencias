@@ -1,11 +1,70 @@
 jQuery(document).ready(function ($) {
     const container = $('#sna-gs-view-container');
+    const pageTitle = $('.toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline, .processos_page_gs-processos .wrap h1.wp-heading-inline');
+    const pageDescription = $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description, .processos_page_gs-processos .wrap .sna-gs-page-description');
 
     // Armazenamento temporário para os arquivos de imagem selecionados
     let fileStore = [];
     // Armazenamento para os dados iniciais do formulário de edição
     let initialFormData = {};
 
+    /**
+     * Lógica para o interruptor Ocorrência/Processo no formulário de gestão.
+     *
+     * Esta função é acionada dinamicamente quando o formulário é carregado via AJAX.
+     */
+    function initializeFormTypeSwitcher() {
+        const formView = $('#sna-gs-form-view');
+        if (formView.length === 0) {
+            return; // Sai se o formulário não estiver na tela
+        }
+
+        const typeToggle = $('#sna-gs-type-toggle');
+        const headerLogo = $('.sna-gs-header-logo');
+        const formElement = $('#sna-gs-form-ocorrencia-submit');
+        const formOcorrenciaWrapper = $('#sna-gs-form-ocorrencia-wrapper');
+        const formProcessoWrapper = $('#sna-gs-form-processo-wrapper');
+        const submitLabel = $('#sna-gs-submit-label');
+
+        // As URLs e textos são passados pelo wp_localize_script em app.php
+        const logoOcorrenciaUrl = gs_ajax_object.logoOcorrencia;
+        const logoProcessoUrl = gs_ajax_object.logoProcesso;
+        const titleOcorrencia = gs_ajax_object.titles.ocorrencia;
+        const titleProcesso = gs_ajax_object.titles.processo;
+        const descOcorrencia = gs_ajax_object.descriptions.ocorrencia;
+        const descProcesso = gs_ajax_object.descriptions.processo;
+
+        function toggleForms() {
+            const isProcesso = typeToggle.is(':checked');
+            const isEditing = !!formElement.find('input[name="ocorrencia_id"]').val();
+
+            if (isProcesso) {
+                headerLogo.attr('src', logoProcessoUrl);
+                pageTitle.text(isEditing ? 'Editando Processo' : 'Adicionando Novo Processo');
+                pageDescription.text(descProcesso);
+                formOcorrenciaWrapper.hide();
+                formProcessoWrapper.show();
+                submitLabel.text('Processo');
+                formElement.addClass('is-processo');
+            } else {
+                headerLogo.attr('src', logoOcorrenciaUrl);
+                pageTitle.text(isEditing ? 'Editando Ocorrência' : 'Adicionando Nova Ocorrência');
+                pageDescription.text(descOcorrencia);
+                formOcorrenciaWrapper.show();
+                formProcessoWrapper.hide();
+                submitLabel.text('Ocorrência');
+                formElement.removeClass('is-processo');
+            }
+        }
+
+        // O evento 'change' é delegado a partir do container principal,
+        // pois o interruptor é carregado dinamicamente.
+        // Usamos .off().on() para evitar múltiplos listeners.
+        container.off('change', '#sna-gs-type-toggle').on('change', '#sna-gs-type-toggle', toggleForms);
+
+        // Executa a função uma vez no carregamento inicial do formulário
+        toggleForms();
+    }
 
     function loadView(viewName, data = {}) {
         container.html('<p>Carregando...</p>');
@@ -22,6 +81,12 @@ jQuery(document).ready(function ($) {
             data: ajaxData,
             success: function (response) {
                 container.html(response);
+
+                // CHAMA A FUNÇÃO DO INTERRUPTOR AQUI, APÓS O CONTEÚDO SER CARREGADO
+                if (viewName === 'form') {
+                    initializeFormTypeSwitcher();
+                }
+
                 // Se for o formulário de edição, armazena os dados iniciais
                 if (viewName === 'form' && data.id) {
                     initialFormData = {
@@ -56,12 +121,6 @@ jQuery(document).ready(function ($) {
     $(document).on('click', '#sna-gs-load-form-btn', function (e) {
         e.preventDefault();
 
-        $('.toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline').text('Adicionando Nova Ocorrência');
-        $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description').html(
-            'Preencha os campos abaixo para registrar uma nova ocorrência no sistema.<br>' +
-            'Descreva de forma clara o problema, erro ou situação identificada quanto mais detalhes forem informados, mais fácil será acompanhar e resolver.<br>' +
-            'Após salvar, a ocorrência ficará disponível na lista principal para consulta e atualização.'
-        );
         $(this).fadeOut();
         fileStore = []; // Limpa o armazenamento de arquivos ao carregar o formulário
         loadView('form');
@@ -70,10 +129,9 @@ jQuery(document).ready(function ($) {
     container.on('click', '#sna-gs-load-list-btn', function (e) {
         e.preventDefault();
 
-        $('.toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline').text('Gerenciar Ocorrências');
-        $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description').html(
-            'Esta é uma ferramenta desenvolvida para registrar, e acompanhar problemas. Seu principal objetivo é centralizar as informações e permitir que cada ocorrência seja monitorada desde o momento em que é registrada até sua resolução.'
-        );
+        pageTitle.text(gs_ajax_object.titles.ocorrencia);
+        pageDescription.text(gs_ajax_object.descriptions.ocorrencia);
+        $('.sna-gs-header-logo').attr('src', gs_ajax_object.logoOcorrencia);
         $('#sna-gs-load-form-btn').fadeIn();
         loadView('list');
     });
@@ -81,12 +139,6 @@ jQuery(document).ready(function ($) {
     container.on('click', '.sna-gs-view-details-link', function (e) {
         e.preventDefault();
         const ocorrenciaId = $(this).data('id');
-
-        $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description').html(
-            'Aqui você pode visualizar os detalhes de uma ocorrência já registrada.<br>' +
-            'Ao final da página, é possível adicionar uma solução, editá-la ou excluí-la, conforme necessário.<br>' +
-            'Para retornar à lista de ocorrências, basta clicar no botão laranja “Voltar para a Lista”.'
-        );
         $('#sna-gs-load-form-btn').fadeOut();
         loadView('details', { id: ocorrenciaId });
     });
@@ -95,11 +147,6 @@ jQuery(document).ready(function ($) {
         e.preventDefault();
         const ocorrenciaId = $(this).data('id');
 
-        $('.toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline').text('Editando Ocorrência');
-        $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description').html(
-            'Edite os detalhes da ocorrência existente. Você pode atualizar o título, a descrição e a imagem.<br>' +
-            'Apenas o criador da ocorrência ou um administrador pode realizar esta ação.'
-        );
         $('#sna-gs-load-form-btn').fadeOut(); // Hide "Nova Ocorrência" button
         fileStore = []; // Limpa o armazenamento de arquivos ao carregar o formulário de edição
         loadView('form', { id: ocorrenciaId }); // Load the form view with occurrence ID
@@ -239,6 +286,9 @@ jQuery(document).ready(function ($) {
         // Determina a ação com base se é uma edição ou nova ocorrência
         formData.append('action', isEditing ? 'gs_update_ocorrencia' : 'gs_save_ocorrencia');
 
+        // Adiciona o valor do interruptor (processos)
+        formData.append('processos', form.find('input[name="processos"]:checked').val() || '0');
+
         if (isEditing) {
             formData.append('ocorrencia_id', ocorrenciaId);
             submitButton.text('Atualizando...');
@@ -246,8 +296,8 @@ jQuery(document).ready(function ($) {
             submitButton.text('Salvando...');
         }
 
-        formData.append('titulo', form.find('input[name="sna-gs-titulo-ocorrencia"]').val());
-        formData.append('descricao', form.find('textarea[name="sna-gs-descricao-ocorrencia"]').val());
+        formData.append('titulo', form.find('input[name="sna-gs-titulo-ocorrencia"]:visible').val());
+        formData.append('descricao', form.find('textarea[name="sna-gs-descricao-ocorrencia"]:visible').val());
 
         // Lida com múltiplos arquivos de imagem usando o arquivo do fileStore
         if (fileStore.length > 0) {
@@ -277,7 +327,6 @@ jQuery(document).ready(function ($) {
                 const forceSuccess = isEditing && hasChanged && response.data.message === 'Nenhuma alteração detectada.';
 
                 if (response.success && (response.data.action_taken || forceSuccess)) {
-                    alert(response.data.message);
                     $('#sna-gs-load-form-btn').fadeIn();
                     loadView('list');
                 } else {

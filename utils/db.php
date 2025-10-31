@@ -28,9 +28,11 @@ class GS_Plugin_DB {
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			user_id bigint(20) UNSIGNED NOT NULL,
 			user_role varchar(255) NULL,
+			tipo tinyint(1) NOT NULL DEFAULT 0, -- 0 para Ocorrência, 1 para Processo
 			titulo text NOT NULL,
 			descricao longtext NOT NULL, 
 			data_registro datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+			data_ultima_edicao datetime NULL,
 			status varchar(50) DEFAULT 'aberto' NOT NULL,
 			solucao longtext NULL,
 			solucionado_por bigint(20) UNSIGNED NULL,

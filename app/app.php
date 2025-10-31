@@ -64,6 +64,7 @@ class GS_Plugin_App {
 		$titulo        = sanitize_text_field( wp_unslash( $_POST['titulo'] ) );
 		$descricao     = sanitize_textarea_field( wp_unslash( $_POST['descricao'] ) );
 		$data_registro = current_time( 'mysql' );
+		$is_processo   = isset( $_POST['processos'] ) ? absint( $_POST['processos'] ) : 0;
 
 		$result = $wpdb->insert(
 			$table_name,
@@ -73,6 +74,7 @@ class GS_Plugin_App {
 				'titulo'        => $titulo,
 				'descricao'     => $descricao,
 				'data_registro' => $data_registro,
+				'processos'     => $is_processo,
 			)
 		);
 
@@ -116,7 +118,8 @@ class GS_Plugin_App {
 			}
 		}
 
-		wp_send_json_success( array( 'message' => 'Ocorrência salva com sucesso!' ) );
+		$type_label = ( 1 === $is_processo ) ? 'Processo' : 'Ocorrência';
+		wp_send_json_success( array( 'message' => "{$type_label} salvo com sucesso!", 'action_taken' => true ) );
 	}
 
 	/**
@@ -152,6 +155,7 @@ class GS_Plugin_App {
 
 		$titulo    = sanitize_text_field( wp_unslash( $_POST['titulo'] ) );
 		$descricao = sanitize_textarea_field( wp_unslash( $_POST['descricao'] ) );
+		$is_processo = isset( $_POST['processos'] ) ? absint( $_POST['processos'] ) : 0;
 
 		// A lógica de remoção de imagens foi movida para uma chamada AJAX separada (ajax_delete_images)
 		$images_removed_count = 0;
@@ -198,10 +202,11 @@ class GS_Plugin_App {
 			array(
 				'titulo'             => $titulo,
 				'descricao'          => $descricao,
+				'processos'          => $is_processo,
 				'data_ultima_edicao' => current_time( 'mysql' ), // Sempre atualiza a data de modificação
 			),
 			array( 'id' => $ocorrencia_id ),
-			array( '%s', '%s', '%s' ),
+			array( '%s', '%s', '%d', '%s' ),
 			array( '%d' )
 		);
 
@@ -717,6 +722,16 @@ class GS_Plugin_App {
 			'nonce'           => wp_create_nonce( 'gs_ajax_nonce' ),
 			'current_user_id' => get_current_user_id(),
 			'is_admin'        => current_user_can( 'manage_options' ),
+			'logoOcorrencia'  => GS_PLUGIN_URL . 'app/assets/views/logoPrincipal.png',
+			'logoProcesso'    => GS_PLUGIN_URL . 'app/assets/views/Processosinicial.png',
+			'titles'          => array(
+				'ocorrencia' => 'Gerenciar Ocorrências',
+				'processo'   => 'Gerenciar Processos',
+			),
+			'descriptions'    => array(
+				'ocorrencia' => 'Esta é uma ferramenta desenvolvida para registrar, e acompanhar problemas. Seu principal objetivo é centralizar as informações e permitir que cada ocorrência seja monitorada desde o momento em que é registrada até sua resolução.',
+				'processo'   => 'Esta é a área para gestão de processos internos. Registre e acompanhe os fluxos de trabalho para otimizar as operações.',
+			),
 		) );
 	}
 
