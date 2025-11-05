@@ -20,7 +20,14 @@ if ( ! defined( 'WPINC' ) ) {
 		<input type="search" id="sna-gs-search-input" placeholder="Buscar ocorrências..." value="<?php echo esc_attr( $search_term ?? '' ); ?>">
 		<button id="sna-gs-search-submit" class="button page-title-action">Buscar</button>
 		<button id="sna-gs-search-clear" class="button button-clear">Limpar</button>
-		<a href="<?php echo esc_url( admin_url( 'admin.php?page=gs-processos' ) ); ?>" class="button button-success">Processos</a>
+		<?php
+		// Determina a classe e o texto do botão com base no filtro atual
+		$is_showing_processos = ( isset( $processos_filter ) && 1 === $processos_filter );
+		$button_class         = $is_showing_processos ? 'button-warning' : 'button-success';
+		$button_text          = $is_showing_processos ? 'Ver Ocorrências' : 'Ver Processos';
+		$data_showing         = $is_showing_processos ? 'processos' : 'ocorrencias';
+		?>
+		<button id="sna-gs-toggle-processos" class="button <?php echo esc_attr( $button_class ); ?>" data-showing="<?php echo esc_attr( $data_showing ); ?>"><?php echo esc_html( $button_text ); ?></button>
 	</div>
 
 	<?php if ( ! empty( $ocorrencias ) ) : ?>
@@ -35,7 +42,10 @@ if ( ! defined( 'WPINC' ) ) {
 			</thead>
 			<tbody>
 				<?php foreach ( $ocorrencias as $ocorrencia ) : ?>
-					<tr>
+					<tr 
+						class="gs-table-row"
+						data-type="<?php echo esc_attr( $ocorrencia->processos ); ?>"
+					>
 						<td>
 							<a href="#" class="sna-gs-view-details-link" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">
 								<?php echo esc_html( $ocorrencia->titulo ); ?>

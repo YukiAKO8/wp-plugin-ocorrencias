@@ -71,28 +71,33 @@ class GS_Ajax_Controller {
 				$current_page   = isset( $_POST['paged'] ) ? absint( $_POST['paged'] ) : 1;
 				$offset         = ( $current_page - 1 ) * $items_per_page;
 				$search_term    = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
+				$processos_filter = isset( $_POST['processos'] ) ? absint( $_POST['processos'] ) : 0; // Padrão para ocorrências (0)
 
 				$current_user = wp_get_current_user();
 				$user_role    = ! empty( $current_user->roles ) ? $current_user->roles[0] : null;
 
 				$where_clause = '';
-				$prepare_args = array();
+				$where_conditions = array();
+				$prepare_args     = array();
 
 				if ( ! current_user_can( 'manage_options' ) && $user_role ) {
-					$where_clause   = ' WHERE o.user_role = %s';
+					$where_conditions[] = 'o.user_role = %s';
 					$prepare_args[] = $user_role;
 				}
 
+				// Adiciona o filtro de processos (ocorrência ou processo)
+				$where_conditions[] = 'o.processos = %d';
+				$prepare_args[] = $processos_filter;
+
 				if ( ! empty( $search_term ) ) {
-					$search_like    = '%' . $wpdb->esc_like( $search_term ) . '%';
-					if ( empty( $where_clause ) ) {
-						$where_clause = ' WHERE';
-					} else {
-						$where_clause .= ' AND';
-					}
-					$where_clause .= ' (o.titulo LIKE %s OR o.descricao LIKE %s)';
+					$search_like      = '%' . $wpdb->esc_like( $search_term ) . '%';
+					$where_conditions[] = '(o.titulo LIKE %s OR o.descricao LIKE %s)';
 					$prepare_args[] = $search_like;
 					$prepare_args[] = $search_like;
+				}
+
+				if ( ! empty( $where_conditions ) ) {
+					$where_clause = ' WHERE ' . implode( ' AND ', $where_conditions );
 				}
 
 				$total_items_query = "SELECT COUNT(o.id) FROM {$table_ocorrencias} o" . $where_clause;

@@ -1,6 +1,7 @@
 jQuery(document).ready(function ($) {
     const container = $('#sna-gs-view-container');
     const pageTitle = $('.toplevel_page_gs-ocorrencias .wrap h1.wp-heading-inline, .processos_page_gs-processos .wrap h1.wp-heading-inline');
+    const headerLogo = $('.sna-gs-header-logo'); // Definido globalmente para ser acessível
     const pageDescription = $('.toplevel_page_gs-ocorrencias .wrap .sna-gs-page-description, .processos_page_gs-processos .wrap .sna-gs-page-description');
 
     // Armazenamento temporário para os arquivos de imagem selecionados
@@ -20,7 +21,6 @@ jQuery(document).ready(function ($) {
         }
 
         const typeToggle = $('#sna-gs-type-toggle');
-        const headerLogo = $('.sna-gs-header-logo');
         const formElement = $('#sna-gs-form-ocorrencia-submit');
         const formOcorrenciaWrapper = $('#sna-gs-form-ocorrencia-wrapper');
         const formProcessoWrapper = $('#sna-gs-form-processo-wrapper');
@@ -45,6 +45,7 @@ jQuery(document).ready(function ($) {
                 formOcorrenciaWrapper.hide();
                 formProcessoWrapper.show();
                 submitLabel.text('Processo');
+                headerLogo.addClass('is-processo-logo');
                 formElement.addClass('is-processo');
             } else {
                 headerLogo.attr('src', logoOcorrenciaUrl);
@@ -53,6 +54,7 @@ jQuery(document).ready(function ($) {
                 formOcorrenciaWrapper.show();
                 formProcessoWrapper.hide();
                 submitLabel.text('Ocorrência');
+                headerLogo.removeClass('is-processo-logo');
                 formElement.removeClass('is-processo');
             }
         }
@@ -62,12 +64,14 @@ jQuery(document).ready(function ($) {
         // Usamos .off().on() para evitar múltiplos listeners.
         container.off('change', '#sna-gs-type-toggle').on('change', '#sna-gs-type-toggle', toggleForms);
 
-        // Executa a função uma vez no carregamento inicial do formulário
+        // Executa a função uma vez no carregamento inicial do formulário para definir o estado correto
         toggleForms();
     }
 
     function loadView(viewName, data = {}) {
         container.html('<p>Carregando...</p>');
+        // Garante que o filtro de processos seja '0' (ocorrências) por padrão para a lista
+        const defaultData = (viewName === 'list' && typeof data.processos === 'undefined') ? { processos: 0 } : {};
 
         const ajaxData = Object.assign({
             action: 'gs_load_view',
@@ -118,6 +122,11 @@ jQuery(document).ready(function ($) {
         });
     }
 
+    // Carrega a view da lista inicial assim que a página de ocorrências é carregada
+    if (container.length) {
+        loadView('list', { processos: 0 }); // Carrega ocorrências por padrão
+    }
+
     $(document).on('click', '#sna-gs-load-form-btn', function (e) {
         e.preventDefault();
 
@@ -134,6 +143,44 @@ jQuery(document).ready(function ($) {
         $('.sna-gs-header-logo').attr('src', gs_ajax_object.logoOcorrencia);
         $('#sna-gs-load-form-btn').fadeIn();
         loadView('list');
+    });
+
+    // Manipulador para o botão de alternar entre Ocorrências e Processos
+    container.on('click', '#sna-gs-toggle-processos', function(e) {
+        e.preventDefault();
+        const button = $(this);
+        const showing = button.data('showing');
+        let filterType; // 0 para ocorrências, 1 para processos
+        
+        // Limpa o campo de busca para evitar conflitos de filtro
+        const searchInput = container.find('#sna-gs-search-input');
+        if (searchInput.val() !== '') {
+            searchInput.val('');
+        }
+        
+        if (showing === 'ocorrencias') {
+            filterType = 1; // Carregar processos
+            button.data('showing', 'processos');
+            button.text('Ver Ocorrências');
+            button.removeClass('button-success').addClass('button-warning'); // Troca a cor para laranja
+            // Atualiza o logo, título e descrição para Processos
+            headerLogo.attr('src', gs_ajax_object.logoProcesso);
+            headerLogo.addClass('is-processo-logo'); // Adiciona classe para estilização
+            pageTitle.text(gs_ajax_object.titles.processo);
+            pageDescription.text(gs_ajax_object.descriptions.processo);
+        } else {
+            filterType = 0; // Carregar ocorrências
+            button.data('showing', 'ocorrencias');
+            button.text('Ver Processos');
+            button.removeClass('button-warning').addClass('button-success'); // Troca a cor de volta para verde
+            // Atualiza o logo, título e descrição para Ocorrências
+            headerLogo.attr('src', gs_ajax_object.logoOcorrencia);
+            headerLogo.removeClass('is-processo-logo'); // Remove classe
+            pageTitle.text(gs_ajax_object.titles.ocorrencia);
+            pageDescription.text(gs_ajax_object.descriptions.ocorrencia);
+        }
+        // Recarrega a view com o filtro correto
+        loadView('list', { paged: 1, processos: filterType });
     });
 
     container.on('click', '.sna-gs-view-details-link', function (e) {
@@ -240,7 +287,7 @@ jQuery(document).ready(function ($) {
     });
 
     container.on('click', '#sna-gs-search-clear', function () {
-        loadView('list');
+        loadView('list', { processos: 0 }); // Volta para a lista de ocorrências
     });
 
     container.on('click', '.sna-gs-pagination-arrow:not(:disabled)', function (e) {
@@ -276,10 +323,11 @@ jQuery(document).ready(function ($) {
         const submitButton = $(this);
         const form = submitButton.closest('form');
         submitButton.prop('disabled', true);
-
+ 
         const formData = new FormData();
         formData.append('nonce', gs_ajax_object.nonce);
-
+ 
+        const isProcesso = form.find('input[name="processos"]:checked').val() === '1';
         const ocorrenciaId = form.find('input[name="ocorrencia_id"]').val();
         const isEditing = !!ocorrenciaId; // Verifica se ocorrencia_id existe
 
@@ -287,7 +335,7 @@ jQuery(document).ready(function ($) {
         formData.append('action', isEditing ? 'gs_update_ocorrencia' : 'gs_save_ocorrencia');
 
         // Adiciona o valor do interruptor (processos)
-        formData.append('processos', form.find('input[name="processos"]:checked').val() || '0');
+        formData.append('processos', isProcesso ? '1' : '0');
 
         if (isEditing) {
             formData.append('ocorrencia_id', ocorrenciaId);
@@ -328,7 +376,19 @@ jQuery(document).ready(function ($) {
 
                 if (response.success && (response.data.action_taken || forceSuccess)) {
                     $('#sna-gs-load-form-btn').fadeIn();
-                    loadView('list');
+                    // Após salvar, carrega a lista correta (ocorrências ou processos)
+                    // e atualiza o cabeçalho da página.
+                    if (isProcesso) {
+                        headerLogo.attr('src', gs_ajax_object.logoProcesso);
+                        pageTitle.text(gs_ajax_object.titles.processo);
+                        pageDescription.text(gs_ajax_object.descriptions.processo);
+                        loadView('list', { processos: 1 });
+                    } else {
+                        headerLogo.attr('src', gs_ajax_object.logoOcorrencia);
+                        pageTitle.text(gs_ajax_object.titles.ocorrencia);
+                        pageDescription.text(gs_ajax_object.descriptions.ocorrencia);
+                        loadView('list', { processos: 0 });
+                    }
                 } else {
                     alert('Erro: ' + (response.data && response.data.message ? response.data.message : 'Erro desconhecido'));
                     submitButton.prop('disabled', false).text(isEditing ? 'Atualizar Ocorrência' : 'Salvar Ocorrência');
@@ -425,7 +485,7 @@ jQuery(document).ready(function ($) {
 
     // Manipulador para quando novos arquivos são selecionados
     container.on('change', '#sna-gs-imagem-ocorrencia', async function(event) {
-        const maxImages = 4;
+        const maxImages = 16;
         const previewContainer = $('#sna-gs-image-preview-container');
         const existingImagesCount = parseInt(previewContainer.data('existing-images') || 0, 10);
 

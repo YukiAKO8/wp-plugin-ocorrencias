@@ -1014,6 +1014,28 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     box-shadow: 0 0 12px rgba(165, 214, 167, 0.6) !important; /* Efeito de iluminação verde */
 }
 
+/* --- Novo Estilo para Botão Laranja (Aviso/Navegação Alternativa) --- */
+.button-warning {
+    background: #fff3e0 !important; /* Fundo laranja claro */
+    border: 1px solid #ffb74d !important; /* Borda laranja */
+    color: #f57c00 !important; /* Texto laranja escuro */
+    padding: 8px 20px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    border-radius: 30px !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    box-shadow: none !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+}
+.button-warning:hover {
+    background: #ffe0b2 !important; /* Laranja um pouco mais escuro no hover */
+    border-color: #ffa726 !important;
+    color: #ef6c00 !important;
+    box-shadow: 0 0 12px rgba(255, 183, 77, 0.6) !important; /* Efeito de iluminação laranja */
+}
+
 /* --- Estilos para o Interruptor Ocorrência/Processo --- */
 .sna-gs-type-switch-container {
     display: flex;
@@ -1107,4 +1129,10 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
     border-color: #81c784 !important;
     color: #1b5e20 !important;
     box-shadow: 0 0 12px rgba(165, 214, 167, 0.6) !important;
+}
+
+/* Aumenta o tamanho do logo quando na visualização de processos */
+.sna-gs-header-logo.is-processo-logo {
+    height: 550px; /* Um pouco maior que os 420px padrão */
+    margin-top: -125px; /* Ajusta a margem superior especificamente para o logo de processos */
 }

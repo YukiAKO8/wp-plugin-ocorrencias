@@ -664,39 +664,8 @@ class GS_Plugin_App {
 			  </a>';
 
 
-		echo '<div id="sna-gs-view-container">';
-
-			global $wpdb;
-			$table_name     = $wpdb->prefix . 'gs_ocorrencias';
-			$items_per_page = 8;
-			$current_page   = 1;
-			$offset         = ( $current_page - 1 ) * $items_per_page;
-
-			// Filtra ocorrências por user_role, exceto para administradores.
-			$current_user = wp_get_current_user();
-			$user_role    = ! empty( $current_user->roles ) ? $current_user->roles[0] : null;
-
-			$where_clause = '';
-			$prepare_args = array();
-
-			if ( ! current_user_can( 'manage_options' ) && $user_role ) {
-				$where_clause   = ' WHERE o.user_role = %s';
-				$prepare_args[] = $user_role;
-			}
-
-			$total_items_query = "SELECT COUNT(o.id) FROM {$table_name} o" . $where_clause;
-			$total_items       = $wpdb->get_var( $wpdb->prepare( $total_items_query, $prepare_args ) );
-			$total_pages = ceil( $total_items / $items_per_page );
-
-			$prepare_args[] = $items_per_page;
-			$prepare_args[] = $offset;
-
-			$ocorrencias = $wpdb->get_results( $wpdb->prepare(
-				"SELECT o.*, u.display_name FROM {$table_name} o LEFT JOIN {$wpdb->users} u ON o.user_id = u.ID" . $where_clause . ' ORDER BY o.data_registro DESC LIMIT %d OFFSET %d',
-				$prepare_args
-			) );
-			require GS_PLUGIN_PATH . 'app/assets/views/lista-ocorrencias.php';
-		echo '</div>'; 
+		// O contêiner agora é carregado vazio. O JS se encarregará de chamar a view 'list' via AJAX.
+		echo '<div id="sna-gs-view-container"><p>Carregando...</p></div>';
 		echo '</div>'; 
 	}
 
@@ -731,6 +700,8 @@ class GS_Plugin_App {
 			'descriptions'    => array(
 				'ocorrencia' => 'Esta é uma ferramenta desenvolvida para registrar, e acompanhar problemas. Seu principal objetivo é centralizar as informações e permitir que cada ocorrência seja monitorada desde o momento em que é registrada até sua resolução.',
 				'processo'   => 'Esta é a área para gestão de processos internos. Registre e acompanhe os fluxos de trabalho para otimizar as operações.',
+				'ocorrencia' => 'Aqui você pode adicionar uma nova ocorrencia, sinta-se a vontade para adicionar detalhes e imagens. Certifique-se de que a ocorrencia já não foi registrada antes, para que não tenha duplicidade',
+				'processo'   => 'Aqui você pode adicionar um novo processo, sinta-se a vontade para adicionar informação e imagens',
 			),
 		) );
 	}
