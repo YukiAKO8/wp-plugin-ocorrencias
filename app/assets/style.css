@@ -489,10 +489,9 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
 
 
 .sna-gs-fab-icon {
-    font-size: 28px; /* Ícone reduzido proporcionalmente */
-    display: flex !important; /* Usa flexbox para centralização */
-    align-items: center !important; /* Alinha verticalmente */
-    justify-content: center !important; /* Alinha horizontalmente */
+    font-size: 28px;
+    position: relative;
+    left: 3px; /* Ajuste fino para a direita */
     transition: all 0.3s ease;
 }
 
@@ -520,6 +519,74 @@ body.ocorrencias_page_gs-dashboard #sna-gs-search-submit, body.ocorrencias_page_
 .sna-gs-fab:hover .sna-gs-fab-text {
     opacity: 1;
     max-width: 160px;
+}
+
+/* --- Botão de Ajuda (?) --- */
+.sna-gs-help-btn {
+    position: fixed;
+    bottom: 25px;
+    left: 25px; /* Posiciona no canto esquerdo */
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: #e8f5e9 !important; /* Fundo verde claro */
+    border: 1px solid #a5d6a7 !important; /* Borda verde */
+    border-radius: 50%;
+    text-decoration: none;
+    color: #2e7d32 !important; /* Ícone verde escuro */
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+.sna-gs-help-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* --- Estilos para o Modal do Manual --- */
+.sna-gs-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001; /* Acima do lightbox de imagens */
+    animation: fadeIn 0.3s ease;
+}
+
+.sna-gs-modal-content {
+    position: relative;
+    background-color: #fff;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    height: 90%;
+    max-width: 1000px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+}
+
+.sna-gs-modal-close {
+    position: absolute;
+    top: -35px; /* Posiciona acima do modal */
+    right: 0;
+    color: #fff;
+    font-size: 35px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.sna-gs-modal-close:hover {
+    color: #ccc;
 }
 
 .sna-gs-view-details-link {

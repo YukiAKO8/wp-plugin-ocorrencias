@@ -95,9 +95,10 @@ final class GS_Plugin {
 		require_once GS_PLUGIN_PATH . 'utils/db.php';
 
 		// Carrega as funções de upload para o Google Drive.
-		
-			require_once WP_PLUGIN_DIR . '/sna-helpers/includes/googleDriveFunctions.php';
-		
+		$google_drive_functions_path = WP_PLUGIN_DIR . '/sna-helpers/includes/googleDriveFunctions.php';
+		if ( file_exists( $google_drive_functions_path ) ) {
+			require_once $google_drive_functions_path;
+		}
 		require_once GS_PLUGIN_PATH . 'app/app.php';
 	}
 

@@ -77,4 +77,16 @@ if ( ! defined( 'WPINC' ) ) {
 	<?php else : ?>
 		<p>Nenhuma ocorrência registrada ainda.</p>
 	<?php endif; ?>
+
+	<a href="#" id="sna-gs-open-manual-modal" class="sna-gs-help-btn" title="Manual do sistema">
+		?
+	</a>
+
+	<!-- Modal do Manual -->
+	<div id="sna-gs-manual-modal" class="sna-gs-modal-overlay" style="display: none;">
+		<div class="sna-gs-modal-content">
+			<span class="sna-gs-modal-close">&times;</span>
+			<iframe src="<?php echo esc_url( GS_PLUGIN_URL . 'app/assets/views/ManualOcorrencias.pdf' ); ?>" width="100%" height="100%" style="border: none;"></iframe>
+		</div>
+	</div>
 </div>

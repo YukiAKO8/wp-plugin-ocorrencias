@@ -834,4 +834,24 @@ jQuery(document).ready(function ($) {
         }
     }
 
+    // --- Lógica para o Modal do Manual ---
+
+    // Abrir o modal
+    container.on('click', '#sna-gs-open-manual-modal', function(e) {
+        e.preventDefault();
+        const modal = $('#sna-gs-manual-modal');
+        if (modal.length) {
+            modal.fadeIn(200);
+        }
+    });
+
+    // Fechar o modal ao clicar no 'X' ou no fundo
+    container.on('click', '#sna-gs-manual-modal', function(e) {
+        // Fecha apenas se o clique for no overlay ou no botão de fechar
+        if ($(e.target).is('.sna-gs-modal-overlay, .sna-gs-modal-close')) {
+            $(this).fadeOut(200);
+        }
+    });
+
+
 });
