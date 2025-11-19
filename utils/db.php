@@ -45,10 +45,13 @@ class GS_Plugin_DB {
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			ocorrencia_id mediumint(9) NOT NULL,
 			imagem_url text NOT NULL,
+			titulo text NULL,
+			descricao longtext NULL,
 			imagem_id_drive varchar(255) NULL,
 			data_upload datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			PRIMARY KEY  (id),
 			KEY ocorrencia_id (ocorrencia_id)
+			
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
