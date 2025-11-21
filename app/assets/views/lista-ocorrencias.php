@@ -91,3 +91,14 @@ if ( ! defined( 'WPINC' ) ) {
 		</div>
 	</div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	// Encontra o link que contém 'page=gs-plugin-add-new' e tem a classe 'page-title-action'
+	const addNewButton = document.querySelector('a.page-title-action[href*="page=gs-plugin-add-new"]');
+
+	if (addNewButton) {
+		addNewButton.textContent = '+ Novo';
+	}
+});
+</script>

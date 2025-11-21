@@ -87,7 +87,18 @@ class GS_Plugin_App {
 		// Lida com o upload de múltiplas imagens e salva na tabela de imagens
 		if ( isset( $_FILES['imagem_ocorrencia'] ) && is_array( $_FILES['imagem_ocorrencia']['name'] ) ) {
 			$files = $_FILES['imagem_ocorrencia'];
-			$table_imagens = $wpdb->prefix . 'gs_imagens_ocorrencias';
+			$table_imagens = $wpdb->prefix . 'gs_imagens_ocorrencias';			
+
+			// Determina quais campos de título/descrição usar com base no tipo (processo ou ocorrência)
+			if ( $is_processo ) {
+				$title_field_name = 'imagem_titulo_processo';
+				$desc_field_name  = 'imagem_descricao_processo';
+			} else {
+				$title_field_name = 'imagem_titulo_ocorrencia';
+				$desc_field_name  = 'imagem_descricao_ocorrencia';
+			}
+			$image_titles       = isset( $_POST[ $title_field_name ] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST[ $title_field_name ] ) ) : array();
+			$image_descriptions = isset( $_POST[ $desc_field_name ] ) ? array_map( 'sanitize_textarea_field', wp_unslash( $_POST[ $desc_field_name ] ) ) : array();
 
 			for ( $i = 0; $i < count( $files['name'] ); $i++ ) {
 				if ( $files['error'][ $i ] === UPLOAD_ERR_OK ) {
@@ -107,6 +118,8 @@ class GS_Plugin_App {
 								array(
 									'ocorrencia_id'   => $ocorrencia_id,
 									'imagem_url'      => $drive_file_response['resposta']['webViewLink'] ?? '',
+									'titulo'          => $image_titles[ $i ] ?? '', // Salva o título
+									'descricao'       => $image_descriptions[ $i ] ?? '', // Salva a descrição
 									'imagem_id_drive' => $drive_file_response['resposta']['id'],
 								)
 							);
@@ -163,8 +176,19 @@ class GS_Plugin_App {
 		// Lida com o upload de novas imagens
 		$new_images_added = false;
 		if ( isset( $_FILES['imagem_ocorrencia'] ) && is_array( $_FILES['imagem_ocorrencia']['name'] ) ) {
-			$files = $_FILES['imagem_ocorrencia'];
-			$table_imagens = $wpdb->prefix . 'gs_imagens_ocorrencias';
+			$files         = $_FILES['imagem_ocorrencia'];
+			$table_imagens = $wpdb->prefix . 'gs_imagens_ocorrencias';			
+
+			// Determina quais campos de título/descrição usar com base no tipo (processo ou ocorrência)
+			if ( $is_processo ) {
+				$title_field_name = 'imagem_titulo_processo';
+				$desc_field_name  = 'imagem_descricao_processo';
+			} else {
+				$title_field_name = 'imagem_titulo_ocorrencia';
+				$desc_field_name  = 'imagem_descricao_ocorrencia';
+			}
+			$image_titles       = isset( $_POST[ $title_field_name ] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST[ $title_field_name ] ) ) : array();
+			$image_descriptions = isset( $_POST[ $desc_field_name ] ) ? array_map( 'sanitize_textarea_field', wp_unslash( $_POST[ $desc_field_name ] ) ) : array();
 
 			for ( $i = 0; $i < count( $files['name'] ); $i++ ) {
 				// Apenas processa se um arquivo foi realmente enviado para este índice
@@ -185,6 +209,8 @@ class GS_Plugin_App {
 								array(
 									'ocorrencia_id'   => $ocorrencia_id,
 									'imagem_url'      => $drive_file_response['resposta']['webViewLink'] ?? '',
+									'titulo'          => $image_titles[ $i ] ?? '', // Salva o título
+									'descricao'       => $image_descriptions[ $i ] ?? '', // Salva a descrição
 									'imagem_id_drive' => $drive_file_response['resposta']['id'],
 								)
 							);
@@ -660,7 +686,9 @@ class GS_Plugin_App {
 
 		echo '<a href="#" id="sna-gs-load-form-btn" class="sna-gs-fab">
 				<span class="sna-gs-fab-icon">+</span>
-				<span class="sna-gs-fab-text">Nova Ocorrência</span>
+				<span class="sna-gs-fab-text">Novo</span>
+				
+			
 			  </a>';
 
 

@@ -38,13 +38,32 @@ $form_title_processo = $is_editing ? 'Atualizar Processo' : 'Salvar Processo';
 		<div id="sna-gs-image-preview-container-processo" data-existing-images="<?php echo esc_attr( $is_editing && isset( $ocorrencia->imagens ) ? count( $ocorrencia->imagens ) : 0 ); ?>"></div>
 
 		<?php if ( $is_editing && ! empty( $ocorrencia->imagens ) ) : ?>
-			<div class="sna-gs-current-images-wrapper">
-				<p>Anexos atuais:</p>
-				<div id="sna-gs-existing-images-list-processo">
+			<div class="sna-gs-current-images-wrapper"> <!-- Contêiner principal para anexos existentes -->
+				<h4>Anexos Atuais</h4>
+				<div id="sna-gs-existing-images-list-processo"> <!-- Contêiner para a lista de anexos -->
 					<?php foreach ( $ocorrencia->imagens as $image ) : ?>
-						<div class="sna-gs-current-image-item" data-image-id="<?php echo esc_attr( $image->id ); ?>">
-							<input type="checkbox" name="images_to_delete[]" value="<?php echo esc_attr( $image->id ); ?>" class="sna-gs-delete-image-checkbox">
-							<img src="<?php echo esc_url( $image->display_url ); ?>" alt="Anexo existente">
+						<div class="sna-gs-current-image-item" data-image-id="<?php echo esc_attr( $image->id ); ?>"> <!-- Item individual do anexo -->
+							
+							<!-- 1. Título do Anexo -->
+							<?php if ( ! empty( $image->titulo ) ) : ?>
+								<p class="gs-image-title"><strong><?php echo esc_html( $image->titulo ); ?></strong></p>
+							<?php endif; ?>
+
+							<!-- 2. Anexo (Imagem) -->
+							<a href="<?php echo esc_url( $image->display_url ); ?>" target="_blank" rel="noopener noreferrer">
+								<img src="<?php echo esc_url( $image->display_url ); ?>" alt="<?php echo esc_attr( $image->titulo ); ?>" style="max-width: 200px; height: auto; display: block; margin-bottom: 10px;">
+							</a>
+
+							<!-- 3. Descrição do Anexo -->
+							<?php if ( ! empty( $image->descricao ) ) : ?>
+								<p class="gs-image-description"><?php echo nl2br( esc_html( $image->descricao ) ); ?></p>
+							<?php endif; ?>
+
+							<!-- Checkbox para exclusão -->
+							<label>
+								<input type="checkbox" name="images_to_delete[]" value="<?php echo esc_attr( $image->id ); ?>" class="sna-gs-delete-image-checkbox">
+								Marcar para remover
+							</label>
 						</div>
 					<?php endforeach; ?>
 				</div>

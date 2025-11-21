@@ -59,13 +59,32 @@ $form_title = $is_editing ? 'Atualizar' : 'Salvar';
 				<div id="sna-gs-image-preview-container" data-existing-images="<?php echo esc_attr( $is_editing && isset( $ocorrencia->imagens ) ? count( $ocorrencia->imagens ) : 0 ); ?>"></div>
 
 				<?php if ( $is_editing && ! empty( $ocorrencia->imagens ) ) : ?>
-					<div class="sna-gs-current-images-wrapper">
-						<p>Imagens atuais:</p>
-						<div id="sna-gs-existing-images-list">
+					<div class="sna-gs-current-images-wrapper"> <!-- Contêiner principal para imagens existentes -->
+						<h4>Imagens Anexadas</h4>
+						<div id="sna-gs-existing-images-list"> <!-- Contêiner para a lista de imagens -->
 							<?php foreach ( $ocorrencia->imagens as $image ) : ?>
-								<div class="sna-gs-current-image-item" data-image-id="<?php echo esc_attr( $image->id ); ?>">
-									<input type="checkbox" name="images_to_delete[]" value="<?php echo esc_attr( $image->id ); ?>" class="sna-gs-delete-image-checkbox">
-									<img src="<?php echo esc_url( $image->display_url ); ?>" alt="Imagem existente">
+								<div class="sna-gs-current-image-item" data-image-id="<?php echo esc_attr( $image->id ); ?>"> <!-- Item individual da imagem -->
+									
+									<!-- 1. Título da Imagem -->
+									<?php if ( ! empty( $image->titulo ) ) : ?>
+										<p class="gs-image-title"><strong><?php echo esc_html( $image->titulo ); ?></strong></p>
+									<?php endif; ?>
+
+									<!-- 2. Imagem -->
+									<a href="<?php echo esc_url( $image->display_url ); ?>" target="_blank" rel="noopener noreferrer">
+										<img src="<?php echo esc_url( $image->display_url ); ?>" alt="<?php echo esc_attr( $image->titulo ); ?>" style="max-width: 200px; height: auto; display: block; margin-bottom: 10px;">
+									</a>
+
+									<!-- 3. Descrição da Imagem -->
+									<?php if ( ! empty( $image->descricao ) ) : ?>
+										<p class="gs-image-description"><?php echo nl2br( esc_html( $image->descricao ) ); ?></p>
+									<?php endif; ?>
+
+									<!-- Checkbox para exclusão -->
+									<label>
+										<input type="checkbox" name="images_to_delete[]" value="<?php echo esc_attr( $image->id ); ?>" class="sna-gs-delete-image-checkbox">
+										Marcar para remover
+									</label>
 								</div>
 							<?php endforeach; ?>
 						</div>
@@ -90,3 +109,54 @@ $form_title = $is_editing ? 'Atualizar' : 'Salvar';
 
 	</form>
 </div>
+
+<script>
+jQuery(document).ready(function($) {
+    // Função para lidar com a seleção de arquivos
+    function handleFileSelection(fileInput, previewContainer, type) {
+        const files = fileInput.files;
+        if (!files.length) {
+            return;
+        }
+
+        // Define os nomes dos campos com base no tipo (ocorrencia ou processo)
+        const titleName = type === 'ocorrencia' ? 'imagem_titulo_ocorrencia[]' : 'imagem_titulo_processo[]';
+        const descName = type === 'ocorrencia' ? 'imagem_descricao_ocorrencia[]' : 'imagem_descricao_processo[]';
+
+        // Limpa apenas as pré-visualizações de NOVAS imagens
+        $(previewContainer).find('.sna-gs-new-image-preview-item').remove();
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (!file.type.startsWith('image/')){ continue; } // Pula arquivos que não são imagens
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const previewWrapper = `
+                    <div class="sna-gs-new-image-preview-item">
+                        <img src="${e.target.result}" alt="Pré-visualização da imagem">
+                        <div class="sna-gs-image-meta-fields">
+                            <input type="text" name="${titleName}" placeholder="Título do anexo" class="widefat">
+                            <textarea name="${descName}" placeholder="Descrição do anexo" class="widefat" rows="2"></textarea>
+                        </div>
+                    </div>
+                `;
+                $(previewContainer).append(previewWrapper);
+            };
+
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Delegação de evento para o input de arquivo de Ocorrências
+    $(document).on('change', '#sna-gs-imagem-ocorrencia', function() {
+        handleFileSelection(this, '#sna-gs-image-preview-container', 'ocorrencia');
+    });
+
+    // Delegação de evento para o input de arquivo de Processos
+    $(document).on('change', '#sna-gs-imagem-processo', function() {
+        handleFileSelection(this, '#sna-gs-image-preview-container-processo', 'processo');
+    });
+});
+</script>
