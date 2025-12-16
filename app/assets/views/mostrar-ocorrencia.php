@@ -34,18 +34,45 @@ if ( ! defined( 'WPINC' ) ) {
 		</div>
 
 		<div class="sna-gs-details-imagens-wrapper">
-			<div class="sna-gs-details-actions-container">
-				<button id="sna-gs-view-images-btn" class="button button-secondary" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>" style="display: none;">Visualizar Imagens Anexadas</button>
-				<div class="sna-gs-header-actions">
-					<?php
-					$current_user_id      = get_current_user_id();
-					$can_modify_occurrence = ( (int) $current_user_id === (int) $ocorrencia->user_id ) || current_user_can( 'manage_options' );
-					if ( $can_modify_occurrence ) : ?>
-						<a href="#" id="sna-gs-edit-occurrence-btn" class="button button-edit" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Editar</a>
-						<a href="#" id="sna-gs-delete-occurrence-btn" class="button button-delete" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Excluir</a>
-					<?php endif; ?>
+			<!-- Ações de Edição e Exclusão -->
+			<div class="sna-gs-header-actions">
+				<?php
+				$current_user_id      = get_current_user_id();
+				$can_modify_occurrence = ( (int) $current_user_id === (int) $ocorrencia->user_id ) || current_user_can( 'manage_options' );
+				if ( $can_modify_occurrence ) : ?>
+					<a href="#" id="sna-gs-edit-occurrence-btn" class="button button-edit" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Editar</a>
+					<a href="#" id="sna-gs-delete-occurrence-btn" class="button button-delete" data-id="<?php echo esc_attr( $ocorrencia->id ); ?>">Excluir</a>
+				<?php endif; ?>
+			</div>
+		</div>
+
+		<!-- Exibição Direta das Imagens Anexadas -->
+		<?php if ( ! empty( $ocorrencia->imagens ) ) : ?>
+			<div class="sna-gs-collapsible-gallery">
+				<div class="sna-gs-gallery-toggle">
+					<span class="sna-gs-gallery-toggle-icon">&gt;</span>
+					<h4>Imagens Anexadas (<?php echo count( $ocorrencia->imagens ); ?>)</h4>
+				</div>
+				<div class="sna-gs-direct-image-gallery" style="display: none;">
+					<?php foreach ( $ocorrencia->imagens as $image ) : ?>
+						<?php if ( ! empty( $image->display_url ) ) : ?>
+							<div class="sna-gs-direct-image-item">
+								<!-- Título da Imagem -->
+								<?php if ( ! empty( $image->titulo ) ) : ?>
+									<p class="gs-image-title"><?php echo esc_html( $image->titulo ); ?></p>
+								<?php endif; ?>
+								<!-- Imagem Clicável -->
+								<img src="<?php echo esc_url( $image->display_url ); ?>" alt="<?php echo esc_attr( $image->titulo ); ?>" class="gs-image-display sna-gs-gallery-thumbnail" data-title="<?php echo esc_attr( $image->titulo ); ?>" data-description="<?php echo esc_attr( $image->descricao ); ?>">
+								<!-- Descrição da Imagem -->
+								<?php if ( ! empty( $image->descricao ) ) : ?>
+									<p class="gs-image-description"><?php echo nl2br( esc_html( $image->descricao ) ); ?></p>
+								<?php endif; ?>
+							</div>
+						<?php endif; ?>
+					<?php endforeach; ?>
 				</div>
 			</div>
+		<?php endif; ?>
 			<div id="sna-gs-image-gallery-container" style="display: none; margin-top: 15px;"></div>
 		</div>
 

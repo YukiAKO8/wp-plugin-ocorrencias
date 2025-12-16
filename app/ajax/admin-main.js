@@ -98,10 +98,6 @@ jQuery(document).ready(function ($) {
                         descricao: $('#sna-gs-descricao-ocorrencia').val()
                     };
                 }
-                // Se a view carregada for a de detalhes, chama a verificação do botão de imagens.
-                if (viewName === 'details') {
-                    checkAndShowImagesButton();
-                }
 
                 // Lógica para mostrar/esconder botões de edição/exclusão na view de detalhes
                 if (viewName === 'details') {
@@ -129,19 +125,23 @@ jQuery(document).ready(function ($) {
 
     $(document).on('click', '#sna-gs-load-form-btn', function (e) {
         e.preventDefault();
+        const fab = $(this);
+        const formType = fab.data('form-type') || 'ocorrencia'; // Padrão para 'ocorrencia'
 
-        $(this).fadeOut();
+        fab.fadeOut();
         fileStore = []; // Limpa o armazenamento de arquivos ao carregar o formulário
-        loadView('form');
+        loadView('form', { type: formType }); // Passa o tipo para a view do formulário
     });
 
     container.on('click', '#sna-gs-load-list-btn', function (e) {
         e.preventDefault();
+        const fab = $('#sna-gs-load-form-btn');
 
         pageTitle.text(gs_ajax_object.titles.ocorrencia);
         pageDescription.text(gs_ajax_object.descriptions.ocorrencia);
         $('.sna-gs-header-logo').attr('src', gs_ajax_object.logoOcorrencia);
-        $('#sna-gs-load-form-btn').fadeIn();
+        fab.data('form-type', 'ocorrencia'); // Garante que o FAB volte ao padrão
+        fab.fadeIn();
         loadView('list');
     });
 
@@ -150,6 +150,7 @@ jQuery(document).ready(function ($) {
         e.preventDefault();
         const button = $(this);
         const showing = button.data('showing');
+        const fab = $('#sna-gs-load-form-btn'); // Pega o botão flutuante
         let filterType; // 0 para ocorrências, 1 para processos
         
         // Limpa o campo de busca para evitar conflitos de filtro
@@ -160,6 +161,7 @@ jQuery(document).ready(function ($) {
         
         if (showing === 'ocorrencias') {
             filterType = 1; // Carregar processos
+            fab.data('form-type', 'processo'); // Define o contexto do FAB para 'processo'
             button.data('showing', 'processos');
             button.text('Ver Ocorrências');
             button.removeClass('button-success').addClass('button-warning'); // Troca a cor para laranja
@@ -170,6 +172,7 @@ jQuery(document).ready(function ($) {
             pageDescription.text(gs_ajax_object.descriptions.processo);
         } else {
             filterType = 0; // Carregar ocorrências
+            fab.data('form-type', 'ocorrencia'); // Define o contexto do FAB para 'ocorrencia'
             button.data('showing', 'ocorrencias');
             button.text('Ver Processos');
             button.removeClass('button-warning').addClass('button-success'); // Troca a cor de volta para verde
@@ -344,14 +347,33 @@ jQuery(document).ready(function ($) {
             submitButton.text('Salvando...');
         }
 
-        formData.append('titulo', form.find('input[name="sna-gs-titulo-ocorrencia"]:visible').val());
-        formData.append('descricao', form.find('textarea[name="sna-gs-descricao-ocorrencia"]:visible').val());
+        // Adiciona título e descrição com base no formulário visível
+        if (isProcesso) {
+            formData.append('titulo', form.find('input[name="titulo"]:visible').val());
+            formData.append('descricao', form.find('textarea[name="descricao"]:visible').val());
+        } else {
+            formData.append('titulo', form.find('input[name="titulo"]:visible').val());
+            formData.append('descricao', form.find('textarea[name="descricao"]:visible').val());
+        }
 
         // Lida com múltiplos arquivos de imagem usando o arquivo do fileStore
         if (fileStore.length > 0) {
+            const fileInputName = isProcesso ? 'imagem_processo[]' : 'imagem_ocorrencia[]';
             for (let i = 0; i < fileStore.length; i++) {
-                formData.append('imagem_ocorrencia[]', fileStore[i]);
+                // Apenas anexa arquivos que correspondem ao tipo de formulário atual
+                // Esta lógica precisa ser melhorada se fileStore contiver ambos os tipos
+                formData.append(fileInputName, fileStore[i]);
             }
+
+            // Adiciona os títulos e descrições das novas imagens
+            const titleInputName = isProcesso ? 'imagem_titulo_processo[]' : 'imagem_titulo_ocorrencia[]';
+            const descInputName = isProcesso ? 'imagem_descricao_processo[]' : 'imagem_descricao_ocorrencia[]';
+            form.find(`input[name='${titleInputName}']`).each(function() {
+                formData.append(titleInputName, $(this).val());
+            });
+            form.find(`textarea[name='${descInputName}']`).each(function() {
+                formData.append(descInputName, $(this).val());
+            });
         }
 
         // Lógica de detecção de mudança forçada
@@ -484,9 +506,14 @@ jQuery(document).ready(function ($) {
     }
 
     // Manipulador para quando novos arquivos são selecionados
-    container.on('change', '#sna-gs-imagem-ocorrencia', async function(event) {
+    container.on('change', '#sna-gs-imagem-ocorrencia, #sna-gs-imagem-processo', async function(event) {
+        const isProcesso = $(this).attr('id') === 'sna-gs-imagem-processo';
+        const previewContainerId = isProcesso ? '#sna-gs-image-preview-container-processo' : '#sna-gs-image-preview-container';
+        const previewContainer = $(previewContainerId);
+        
+        // Limpa o fileStore para evitar misturar arquivos entre ocorrências e processos
+        fileStore = [];
         const maxImages = 16;
-        const previewContainer = $('#sna-gs-image-preview-container');
         const existingImagesCount = parseInt(previewContainer.data('existing-images') || 0, 10);
 
         const files = event.target.files;
@@ -494,7 +521,7 @@ jQuery(document).ready(function ($) {
             const file = files[i];
             if (file.type.startsWith('image/')) {
                 // Verifica se o limite total (existentes + novas) será excedido
-                if ((existingImagesCount + fileStore.length) >= maxImages) {
+                if ((existingImagesCount + fileStore.length) >= maxImages) { // A lógica do fileStore aqui pode ser refinada
                     alert(`Você pode adicionar no máximo ${maxImages} imagens por ocorrência.`);
                     break;
                 }
@@ -509,7 +536,7 @@ jQuery(document).ready(function ($) {
             }
         }
 
-        renderImagePreviews();
+        renderImagePreviews(isProcesso); // Passa o contexto para a renderização
         $(this).val('');
     });
 
@@ -761,12 +788,23 @@ jQuery(document).ready(function ($) {
     // Lightbox para visualização de imagens na tela de detalhes
     container.on('click', '.sna-gs-gallery-thumbnail', function() {
         const imgSrc = $(this).attr('src');
+        const imgTitle = $(this).data('title');
+        const imgDescription = $(this).data('description');
+
+        // Constrói os elementos de título e descrição apenas se eles existirem
+        const titleHTML = imgTitle ? `<h4 class="sna-gs-lightbox-title">${imgTitle}</h4>` : '';
+        const descriptionHTML = imgDescription ? `<p class="sna-gs-lightbox-description">${imgDescription.replace(/\n/g, '<br>')}</p>` : '';
 
         const lightboxHTML = `
             <div class="sna-gs-lightbox-overlay">
+                <span class="sna-gs-lightbox-close">&times;</span>
                 <div class="sna-gs-lightbox-content">
-                    <span class="sna-gs-lightbox-close">&times;</span>
-                    <img src="${imgSrc}" class="sna-gs-lightbox-image" alt="Imagem ampliada">
+                    <div class="sna-gs-lightbox-image-wrapper">
+                        <img src="${imgSrc}" class="sna-gs-lightbox-image" alt="Imagem ampliada">
+                    </div>
+                    <div class="sna-gs-lightbox-info-wrapper">
+                        ${titleHTML}${descriptionHTML}
+                    </div>
                 </div>
             </div>
         `;
@@ -783,56 +821,12 @@ jQuery(document).ready(function ($) {
         });
     });
 
-    // Manipulador para o botão "Visualizar Imagens Anexadas"
-    container.on('click', '#sna-gs-view-images-btn', function(e) {
+    // Manipulador para a galeria de imagens colapsável
+    container.on('click', '.sna-gs-gallery-toggle', function(e) {
         e.preventDefault();
-        const button = $(this);
-        const ocorrenciaId = button.data('id');
-        const galleryContainer = $('#sna-gs-image-gallery-container');
-
-        // Se a galeria já estiver visível, esconde e para.
-        if (galleryContainer.is(':visible')) {
-            galleryContainer.slideUp();
-            return;
-        }
-
-        galleryContainer.html('<p>Carregando imagens...</p>').slideDown();
-
-        $.ajax({
-            url: ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'gs_load_view',
-                view: 'get_images',
-                nonce: gs_ajax_object.nonce,
-                id: ocorrenciaId
-            },
-            success: function(response) {
-                galleryContainer.html(response);
-            },
-            error: function() {
-                galleryContainer.html('<p>Erro ao carregar as imagens.</p>');
-            }
-        });
+        $(this).toggleClass('active');
+        $(this).next('.sna-gs-direct-image-gallery').slideToggle('fast');
     });
-
-    // Função para verificar se há imagens e mostrar o botão
-    function checkAndShowImagesButton() {
-        const viewImagesBtn = $('#sna-gs-view-images-btn');
-        if (viewImagesBtn.length) {
-            const ocorrenciaId = viewImagesBtn.data('id');
-            $.ajax({
-                url: ajaxurl, type: 'POST',
-                data: { action: 'gs_load_view', view: 'count_images', nonce: gs_ajax_object.nonce, id: ocorrenciaId },
-                success: function(response) {
-                    const count = parseInt(response, 10);
-                    if (count > 0) {
-                        viewImagesBtn.text(`Visualizar Imagens Anexadas (${count})`).show();
-                    }
-                }
-            });
-        }
-    }
 
     // --- Lógica para o Modal do Manual ---
 

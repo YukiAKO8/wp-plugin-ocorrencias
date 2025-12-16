@@ -178,7 +178,12 @@ class GS_Ajax_Controller {
 						if ( ! empty( $img_db->imagem_id_drive ) ) {
 							$display_url = getFilesWPDrive( $img_db->imagem_id_drive );
 							echo '<div class="sna-gs-gallery-item">';
-							echo '<img src="' . esc_url( $display_url ) . '" alt="Imagem da ocorrência" class="sna-gs-gallery-thumbnail">';
+							// Adiciona data attributes para o título e descrição
+							echo '<img src="' . esc_url( $display_url ) . '" ' .
+								 'alt="' . esc_attr( $img_db->titulo ) . '" ' .
+								 'class="sna-gs-gallery-thumbnail" ' .
+								 'data-title="' . esc_attr( $img_db->titulo ) . '" ' .
+								 'data-description="' . esc_attr( $img_db->descricao ) . '">';
 							echo '</div>';
 						}
 					}

@@ -44,6 +44,8 @@ class GS_Plugin_App {
 		add_action( 'wp_ajax_gs_delete_ocorrencia', array( $this, 'ajax_delete_ocorrencia' ) );
 		// Adicionado o hook para a nova função AJAX de exclusão de imagens
 		add_action( 'wp_ajax_gs_delete_images_ajax', array( $this, 'ajax_delete_images' ) );
+		// Adicionado o hook para a nova função AJAX de geração de relatório
+		add_action( 'wp_ajax_gs_generate_report', array( $this, 'ajax_generate_report' ) );
 	}
 
 	public function handle_form_submission() {
@@ -85,8 +87,10 @@ class GS_Plugin_App {
 		$ocorrencia_id = $wpdb->insert_id;
 
 		// Lida com o upload de múltiplas imagens e salva na tabela de imagens
-		if ( isset( $_FILES['imagem_ocorrencia'] ) && is_array( $_FILES['imagem_ocorrencia']['name'] ) ) {
-			$files = $_FILES['imagem_ocorrencia'];
+		$files_key = ( 1 === $is_processo ) ? 'imagem_processo' : 'imagem_ocorrencia';
+
+		if ( isset( $_FILES[ $files_key ] ) && is_array( $_FILES[ $files_key ]['name'] ) ) {
+			$files         = $_FILES[ $files_key ];
 			$table_imagens = $wpdb->prefix . 'gs_imagens_ocorrencias';			
 
 			// Determina quais campos de título/descrição usar com base no tipo (processo ou ocorrência)
@@ -175,8 +179,10 @@ class GS_Plugin_App {
 
 		// Lida com o upload de novas imagens
 		$new_images_added = false;
-		if ( isset( $_FILES['imagem_ocorrencia'] ) && is_array( $_FILES['imagem_ocorrencia']['name'] ) ) {
-			$files         = $_FILES['imagem_ocorrencia'];
+		$files_key        = ( 1 === $is_processo ) ? 'imagem_processo' : 'imagem_ocorrencia';
+
+		if ( isset( $_FILES[ $files_key ] ) && is_array( $_FILES[ $files_key ]['name'] ) ) {
+			$files         = $_FILES[ $files_key ];
 			$table_imagens = $wpdb->prefix . 'gs_imagens_ocorrencias';			
 
 			// Determina quais campos de título/descrição usar com base no tipo (processo ou ocorrência)
@@ -577,6 +583,123 @@ class GS_Plugin_App {
 		wp_send_json_success( array( 'message' => 'Solução excluída com sucesso!' ) );
 	}
 
+	/**
+	 * Callback AJAX para gerar um relatório com base nos filtros atuais.
+	 *
+	 * @since 1.0.1
+	 */
+	public function ajax_generate_report() {
+		check_ajax_referer( 'gs_ajax_nonce', 'nonce' );
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'gs_ocorrencias';
+
+		// --- Lógica de Filtro (similar à busca da lista) ---
+		$where_clauses = array( '1=1' );
+		$args          = array();
+
+		// Filtro de pesquisa
+		if ( ! empty( $_POST['search'] ) ) {
+			$search_term     = '%' . $wpdb->esc_like( sanitize_text_field( $_POST['search'] ) ) . '%';
+			$where_clauses[] = '(titulo LIKE %s OR descricao LIKE %s)';
+			$args[]          = $search_term;
+			$args[]          = $search_term;
+		}
+
+		// Filtro de status
+		if ( ! empty( $_POST['status'] ) && 'todos' !== $_POST['status'] ) {
+			$where_clauses[] = 'status = %s';
+			$args[]          = sanitize_text_field( $_POST['status'] );
+		}
+
+		// Filtro de tipo (Ocorrência ou Processo)
+		if ( isset( $_POST['processos'] ) && in_array( $_POST['processos'], array( '0', '1' ), true ) ) {
+			$where_clauses[] = 'processos = %d';
+			$args[]          = absint( $_POST['processos'] );
+		}
+
+		// Filtro de data
+		if ( ! empty( $_POST['start_date'] ) ) {
+			$where_clauses[] = 'DATE(data_registro) >= %s';
+			$args[]          = sanitize_text_field( $_POST['start_date'] );
+		}
+		if ( ! empty( $_POST['end_date'] ) ) {
+			$where_clauses[] = 'DATE(data_registro) <= %s';
+			$args[]          = sanitize_text_field( $_POST['end_date'] );
+		}
+
+		// Filtro de role (se não for admin)
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$current_user    = wp_get_current_user();
+			$user_role       = ! empty( $current_user->roles ) ? $current_user->roles[0] : null;
+			$where_clauses[] = 'user_role = %s';
+			$args[]          = $user_role;
+		}
+
+		$sql = "SELECT * FROM {$table_name} WHERE " . implode( ' AND ', $where_clauses );
+		if ( ! empty( $args ) ) {
+			$ocorrencias = $wpdb->get_results( $wpdb->prepare( $sql, $args ) );
+		} else {
+			$ocorrencias = $wpdb->get_results( $sql );
+		}
+
+		if ( empty( $ocorrencias ) ) {
+			wp_send_json_error( array( 'message' => 'Nenhum registro encontrado para os filtros selecionados.' ) );
+		}
+
+		// --- Cálculo das Métricas ---
+		$total_atendimentos = count( $ocorrencias );
+		$status_counts      = array(
+			'aberto'      => 0,
+			'solucionada' => 0,
+		);
+		$advogado_counts    = array();
+		$horario_counts     = array_fill( 0, 24, 0 );
+		$tipo_counts        = array(
+			'Ocorrência' => 0,
+			'Processo'   => 0,
+		);
+
+		foreach ( $ocorrencias as $item ) {
+			// Status
+			if ( isset( $status_counts[ $item->status ] ) ) {
+				$status_counts[ $item->status ]++;
+			}
+			// Advogado
+			$user_info = get_userdata( $item->user_id );
+			$user_name = $user_info ? $user_info->display_name : 'Usuário desconhecido';
+			if ( ! isset( $advogado_counts[ $user_name ] ) ) {
+				$advogado_counts[ $user_name ] = 0;
+			}
+			$advogado_counts[ $user_name ]++;
+			// Horário
+			$hour = (int) date( 'G', strtotime( $item->data_registro ) );
+			$horario_counts[ $hour ]++;
+			// Tipo
+			if ( 1 === (int) $item->processos ) {
+				$tipo_counts['Processo']++;
+			} else {
+				$tipo_counts['Ocorrência']++;
+			}
+		}
+
+		arsort( $advogado_counts );
+		$top_advogado = ! empty( $advogado_counts ) ? key( $advogado_counts ) . ' (' . current( $advogado_counts ) . ' atendimentos)' : 'N/A';
+
+		arsort( $horario_counts );
+		$top_horario = ! empty( $horario_counts ) && current( $horario_counts ) > 0 ? str_pad( key( $horario_counts ), 2, '0', STR_PAD_LEFT ) . ':00' : 'N/A';
+
+		arsort( $tipo_counts );
+		$top_tipo = ! empty( $tipo_counts ) ? key( $tipo_counts ) : 'N/A';
+
+		// --- Geração do HTML do Relatório ---
+		ob_start();
+		require_once GS_PLUGIN_PATH . 'app/assets/views/report-template.php';
+		$report_html = ob_get_clean();
+
+		wp_send_json_success( array( 'report_html' => $report_html ) );
+	}
+
 	public function register_admin_menu() {
 		add_menu_page(
 			'Lista de Ocorrências', // Título da página
@@ -732,6 +855,34 @@ class GS_Plugin_App {
 				'processo'   => 'Aqui você pode adicionar um novo processo, sinta-se a vontade para adicionar informação e imagens',
 			),
 		) );
+
+		// Adiciona o script inline para controlar a troca de formulário
+		$inline_script = "
+            jQuery(document).ready(function($) {
+                function toggleFormView(isProcesso) {
+                    const formOcorrencia = $('#sna-gs-form-ocorrencia-wrapper');
+                    const formProcesso = $('#sna-gs-form-processo-wrapper');
+
+                    if (isProcesso) {
+                        formOcorrencia.hide().find('input, textarea').prop('disabled', true);
+                        formProcesso.show().find('input, textarea').prop('disabled', false);
+                    } else {
+                        formProcesso.hide().find('input, textarea').prop('disabled', true);
+                        formOcorrencia.show().find('input, textarea').prop('disabled', false);
+                    }
+                }
+
+                // Estado inicial ao carregar a página
+                const initialIsProcesso = $('#sna-gs-type-toggle').is(':checked');
+                toggleFormView(initialIsProcesso);
+
+                // Evento de clique no switch
+                $(document).on('change', '#sna-gs-type-toggle', function() {
+                    toggleFormView($(this).is(':checked'));
+                });
+            });
+        ";
+		wp_add_inline_script( 'gs-admin-main', $inline_script );
 	}
 
 	/**

@@ -75,6 +75,8 @@ if ( ! defined( 'WPINC' ) ) {
 				<button class="sna-gs-pagination-arrow next" data-page="<?php echo $current_page + 1; ?>" <?php disabled( $current_page, $total_pages ); ?>>&gt;</button>
 			</div>
 		<?php endif; ?>
+
+		
 	<?php else : ?>
 		<p>Nenhuma ocorrência registrada ainda.</p>
 	<?php endif; ?>
@@ -91,14 +93,3 @@ if ( ! defined( 'WPINC' ) ) {
 		</div>
 	</div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-	// Encontra o link que contém 'page=gs-plugin-add-new' e tem a classe 'page-title-action'
-	const addNewButton = document.querySelector('a.page-title-action[href*="page=gs-plugin-add-new"]');
-
-	if (addNewButton) {
-		addNewButton.textContent = '+ Novo';
-	}
-});
-</script>

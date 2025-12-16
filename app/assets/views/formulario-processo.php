@@ -21,19 +21,19 @@ $form_title_processo = $is_editing ? 'Atualizar Processo' : 'Salvar Processo';
 	<!-- O form ID e a action AJAX podem ser os mesmos, pois a lógica de salvamento já lida com o campo 'processos' -->
 	<div>
 		<label for="sna-gs-titulo-processo">Título do Processo</label>
-		<input type="text" id="sna-gs-titulo-processo" name="sna-gs-titulo-ocorrencia" value="<?php echo esc_attr( $is_editing ? $ocorrencia->titulo : '' ); ?>" required>
+		<input type="text" id="sna-gs-titulo-processo" name="titulo" value="<?php echo esc_attr( $is_editing ? $ocorrencia->titulo : '' ); ?>" required>
 	</div>
 
 	<div>
 		<label for="sna-gs-descricao-processo">Descrição do Processo</label>
-		<textarea id="sna-gs-descricao-processo" name="sna-gs-descricao-ocorrencia" rows="8" required><?php echo esc_textarea( $is_editing ? $ocorrencia->descricao : '' ); ?></textarea>
+		<textarea id="sna-gs-descricao-processo" name="descricao" rows="8" required><?php echo esc_textarea( $is_editing ? $ocorrencia->descricao : '' ); ?></textarea>
 	</div>
 
 	<div>
 		<label for="sna-gs-imagem-processo" class="button button-file-upload">
 			+ Novo Anexo (Opcional)
 		</label>
-		<input type="file" id="sna-gs-imagem-processo" name="sna-gs-imagem-ocorrencia[]" accept="image/*" multiple style="display: none;">
+		<input type="file" id="sna-gs-imagem-processo" name="imagem_processo[]" accept="image/*" multiple style="display: none;">
 
 		<div id="sna-gs-image-preview-container-processo" data-existing-images="<?php echo esc_attr( $is_editing && isset( $ocorrencia->imagens ) ? count( $ocorrencia->imagens ) : 0 ); ?>"></div>
 

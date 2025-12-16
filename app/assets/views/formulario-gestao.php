@@ -42,19 +42,19 @@ $form_title = $is_editing ? 'Atualizar' : 'Salvar';
 		<div id="sna-gs-form-ocorrencia-wrapper">
 			<div>
 				<label for="sna-gs-titulo-ocorrencia">Título da Ocorrência</label>
-				<input type="text" id="sna-gs-titulo-ocorrencia" name="sna-gs-titulo-ocorrencia" value="<?php echo esc_attr( $is_editing ? $ocorrencia->titulo : '' ); ?>" required>
+				<input type="text" id="sna-gs-titulo-ocorrencia" name="titulo" value="<?php echo esc_attr( $is_editing ? $ocorrencia->titulo : '' ); ?>" required>
 			</div>
 
 			<div>
 				<label for="sna-gs-descricao-ocorrencia">Descrição da Ocorrência</label>
-				<textarea id="sna-gs-descricao-ocorrencia" name="sna-gs-descricao-ocorrencia" rows="8" required><?php echo esc_textarea( $is_editing ? $ocorrencia->descricao : '' ); ?></textarea>
+				<textarea id="sna-gs-descricao-ocorrencia" name="descricao" rows="8" required><?php echo esc_textarea( $is_editing ? $ocorrencia->descricao : '' ); ?></textarea>
 			</div>
 
 			<div>
 				<label for="sna-gs-imagem-ocorrencia" class="button button-file-upload">
 					+ Nova Imagem (Opcional)
 				</label>
-				<input type="file" id="sna-gs-imagem-ocorrencia" name="sna-gs-imagem-ocorrencia[]" accept="image/*" multiple style="display: none;">
+				<input type="file" id="sna-gs-imagem-ocorrencia" name="imagem_ocorrencia[]" accept="image/*" multiple style="display: none;">
 
 				<div id="sna-gs-image-preview-container" data-existing-images="<?php echo esc_attr( $is_editing && isset( $ocorrencia->imagens ) ? count( $ocorrencia->imagens ) : 0 ); ?>"></div>
 
